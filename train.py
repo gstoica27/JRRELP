@@ -114,6 +114,7 @@ vocab.save(model_save_dir + '/vocab.pkl')
 file_logger = helper.FileLogger(model_save_dir + '/' + opt['log'], header="# epoch\ttrain_loss\tdev_loss\tdev_score\tbest_dev_score")
 
 test_save_dir = os.path.join(opt['test_save_dir'], opt['id'])
+os.makedirs(test_save_dir, exist_ok=True)
 test_save_file = os.path.join(test_save_dir, 'test_records.pkl')
 test_confusion_save_file = os.path.join(test_save_dir, 'test_confusion_matrix.pkl')
 dev_confusion_save_file = os.path.join(test_save_dir, 'dev_confusion_matrix.pkl')
