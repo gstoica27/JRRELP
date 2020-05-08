@@ -11,6 +11,7 @@ import random
 import argparse
 from shutil import copyfile
 import torch
+import pickle
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
@@ -35,6 +36,7 @@ parser.add_argument('--word_dropout', type=float, default=0.04, help='The rate a
 parser.add_argument('--topn', type=int, default=1e10, help='Only finetune top N word embeddings.')
 parser.add_argument('--lower', dest='lower', action='store_true', help='Lowercase all words.')
 parser.add_argument('--no-lower', dest='lower', action='store_false')
+parser.add_argument('--test_save_dir', default='/usr0/home/gis/research/tacred-exploration/tacred_test_performances', type=str)
 parser.set_defaults(lower=False)
 
 parser.add_argument('--prune_k', default=-1, type=int, help='Prune the dependency tree to <= K distance off the dependency path; set to -1 for no pruning.')
@@ -62,7 +64,7 @@ parser.add_argument('--save_epoch', type=int, default=100, help='Save model chec
 parser.add_argument('--save_dir', type=str, default='/usr0/home/gis/research/tacred-exploration/saved_models', help='Root dir for saving models.')
 parser.add_argument('--id', type=str, default='00', help='Model ID under which to save models.')
 parser.add_argument('--info', type=str, default='', help='Optional info for the experiment.')
-
+parser.add_argument('--test_confusion_save_file', default='')
 parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
@@ -110,6 +112,11 @@ helper.ensure_dir(model_save_dir, verbose=True)
 helper.save_config(opt, model_save_dir + '/config.json', verbose=True)
 vocab.save(model_save_dir + '/vocab.pkl')
 file_logger = helper.FileLogger(model_save_dir + '/' + opt['log'], header="# epoch\ttrain_loss\tdev_loss\tdev_score\tbest_dev_score")
+
+test_save_dir = os.path.join(opt['test_save_dir'], opt['id'])
+test_save_file = os.path.join(test_save_dir, 'test_records.pkl')
+test_confusion_save_file = os.path.join(test_save_dir, 'test_confusion_matrix.pkl')
+dev_confusion_save_file = os.path.join(test_save_dir, 'dev_confusion_matrix.pkl')
 
 # print model info
 helper.print_config(opt)
@@ -169,19 +176,17 @@ for epoch in range(1, opt['num_epoch']+1):
     
     # eval on dev
     print("Evaluating on dev set...")
-    predictions = []
+    dev_predictions = []
     dev_loss = 0
     for i, batch in enumerate(dev_batch):
         preds, _, loss = trainer.predict(batch)
-        predictions += preds
+        dev_predictions += preds
         dev_loss += loss
-    predictions = [id2label[p] for p in predictions]
-#     train_loss = train_loss / train_batch.num_examples * opt['batch_size'] # avg loss per batch
+    dev_predictions = [id2label[p] for p in dev_predictions]
     dev_loss = dev_loss / dev_batch.num_examples * opt['batch_size']
 
-    dev_p, dev_r, dev_f1 = scorer.score(dev_batch.gold(), predictions)
-    print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch,\
-        train_loss, dev_loss, dev_f1))
+    dev_p, dev_r, dev_f1 = scorer.score(dev_batch.gold(), dev_predictions)
+    print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch, train_loss, dev_loss, dev_f1))
     dev_score = dev_f1
     file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_score, max([dev_score] + dev_score_history)))
     current_dev_metrics = {'f1': dev_f1, 'precision': dev_p, 'recall': dev_r}
