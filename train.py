@@ -21,8 +21,8 @@ from utils import torch_utils, scorer, constant, helper
 from utils.vocab import Vocab
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', type=str, default='dataset/tacred')
-parser.add_argument('--vocab_dir', type=str, default='dataset/vocab')
+parser.add_argument('--data_dir', type=str, default='/usr0/home/gis/data/tacred/data/json')
+parser.add_argument('--vocab_dir', type=str, default='/usr0/home/gis/data/tacred/data/vocab')
 parser.add_argument('--emb_dim', type=int, default=300, help='Word embedding dimension.')
 parser.add_argument('--ner_dim', type=int, default=30, help='NER embedding dimension.')
 parser.add_argument('--pos_dim', type=int, default=30, help='POS embedding dimension.')
@@ -58,7 +58,7 @@ parser.add_argument('--max_grad_norm', type=float, default=5.0, help='Gradient c
 parser.add_argument('--log_step', type=int, default=20, help='Print log every k steps.')
 parser.add_argument('--log', type=str, default='logs.txt', help='Write training log to file.')
 parser.add_argument('--save_epoch', type=int, default=100, help='Save model checkpoints every k epochs.')
-parser.add_argument('--save_dir', type=str, default='./saved_models', help='Root dir for saving models.')
+parser.add_argument('--save_dir', type=str, default='/usr0/home/gis/research/tacred-exploration/saved_models', help='Root dir for saving models.')
 parser.add_argument('--id', type=str, default='00', help='Model ID under which to save models.')
 parser.add_argument('--info', type=str, default='', help='Optional info for the experiment.')
 
