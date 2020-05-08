@@ -14,6 +14,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
+from collections import defaultdict
 
 from data.loader import DataLoader
 from model.trainer import GCNTrainer
@@ -183,7 +184,8 @@ for epoch in range(1, opt['num_epoch']+1):
         train_loss, dev_loss, dev_f1))
     dev_score = dev_f1
     file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_score, max([dev_score] + dev_score_history)))
-    
+    current_dev_metrics = {'f1': dev_f1, 'precision': dev_p, 'recall': dev_r}
+
      # eval on test
     test_predictions = []
     for i, batch in enumerate(test_batch):
