@@ -93,7 +93,6 @@ class GCNTrainer(Trainer):
         self.optimizer = torch_utils.get_optimizer(opt['optim'], self.parameters, opt['lr'])
 
     def update(self, batch):
-        losses = {}
         # inputs, labels, tokens, head, subj_pos, obj_pos, lens = unpack_batch(batch, self.opt['cuda'])
         inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
 
@@ -101,23 +100,17 @@ class GCNTrainer(Trainer):
         self.model.train()
         self.optimizer.zero_grad()
         logits, pooling_output = self.model(inputs)
-        re_loss = self.criterion(logits, labels)
-        losses['re_loss'] = re_loss.data.item()
-        cumulative_loss = re_loss
+        loss = self.criterion(logits, labels)
+
         # l2 decay on all conv layers
         if self.opt.get('conv_l2', 0) > 0:
-            conv_l2_loss = self.model.conv_l2() * self.opt['conv_l2']
-            cumulative_loss += conv_l2_loss
-            losses['conv_l2'] = conv_l2_loss.data.item()
+            loss += self.model.conv_l2() * self.opt['conv_l2']
         # l2 penalty on output representations
         if self.opt.get('pooling_l2', 0) > 0:
-            pooling_l2_loss = self.opt['pooling_l2'] * (pooling_output ** 2).sum(1).mean()
-            cumulative_loss += pooling_l2_loss
-            losses['pooling_l2'] = pooling_l2_loss.data.item()
-
-        loss_val = cumulative_loss.item()
+            loss += self.opt['pooling_l2'] * (pooling_output ** 2).sum(1).mean()
+        loss_val = loss.item()
         # backward
-        cumulative_loss.backward()
+        loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.opt['max_grad_norm'])
         self.optimizer.step()
         return loss_val
