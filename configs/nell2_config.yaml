@@ -1,4 +1,4 @@
-data_dir: "'/usr0/home/gis/data/tacred/data/json"
+data_dir: "/usr0/home/gis/data/tacred/data/json"
 vocab_dir: "/usr0/home/gis/data/tacred/data/vocab"
 emb_dim: 300
 ner_dim: 30
