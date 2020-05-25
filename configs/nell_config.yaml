@@ -34,11 +34,10 @@ log:  'logs.txt'  # Write training log to file.
 save_epoch: 5 # Save model checkpoints every k epochs
 id: 'C-GCN'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 1234  # random seed
+seed: 0  # random seed
 remove_entity_types: False # Replace subject and object granular typing with universal subject and object
 cuda: True
 cpu: False # Ignore CUDA.
-attn: True # Use attention layer.
 load: False
 model_file:
 kg_loss:
