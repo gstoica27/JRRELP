@@ -86,13 +86,13 @@ init_time = time.time()
 
 # make opt
 opt = vars(args)
-cwd = os.getcwd()
-on_server = 'Desktop' not in cwd
-config_path = os.path.join(cwd, 'configs', f'{"nell" if on_server else "local"}_config.yaml')
-
-with open(config_path, 'r') as file:
-    cfg_dict = yaml.load(file)
-opt = cfg_dict
+# cwd = os.getcwd()
+# on_server = 'Desktop' not in cwd
+# config_path = os.path.join(cwd, 'configs', f'{"nell" if on_server else "local"}_config.yaml')
+#
+# with open(config_path, 'r') as file:
+#     cfg_dict = yaml.load(file)
+# opt = cfg_dict
 
 label2id = constant.LABEL_TO_ID
 opt['num_class'] = len(label2id)
