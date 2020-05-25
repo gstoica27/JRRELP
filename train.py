@@ -22,59 +22,17 @@ from model.trainer import GCNTrainer
 from utils import torch_utils, scorer, constant, helper
 from utils.vocab import Vocab
 import yaml
-parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', type=str, default='/usr0/home/gis/data/tacred/data/json')
-parser.add_argument('--vocab_dir', type=str, default='/usr0/home/gis/data/tacred/data/vocab')
-parser.add_argument('--emb_dim', type=int, default=300, help='Word embedding dimension.')
-parser.add_argument('--ner_dim', type=int, default=30, help='NER embedding dimension.')
-parser.add_argument('--pos_dim', type=int, default=30, help='POS embedding dimension.')
-parser.add_argument('--hidden_dim', type=int, default=200, help='RNN hidden state size.')
-parser.add_argument('--num_layers', type=int, default=2, help='Num of RNN layers.')
-parser.add_argument('--input_dropout', type=float, default=0.5, help='Input dropout rate.')
-parser.add_argument('--gcn_dropout', type=float, default=0.5, help='GCN layer dropout rate.')
-parser.add_argument('--word_dropout', type=float, default=0.04, help='The rate at which randomly set a word to UNK.')
-parser.add_argument('--topn', type=int, default=1e10, help='Only finetune top N word embeddings.')
-parser.add_argument('--lower', dest='lower', action='store_true', help='Lowercase all words.')
-parser.add_argument('--no-lower', dest='lower', action='store_false')
-parser.add_argument('--test_save_dir', default='/usr0/home/gis/research/tacred-exploration/tacred_test_performances', type=str)
-parser.set_defaults(lower=False)
 
-parser.add_argument('--prune_k', default=-1, type=int, help='Prune the dependency tree to <= K distance off the dependency path; set to -1 for no pruning.')
-parser.add_argument('--conv_l2', type=float, default=0, help='L2-weight decay on conv layers only.')
-parser.add_argument('--pooling', choices=['max', 'avg', 'sum'], default='max', help='Pooling function type. Default max.')
-parser.add_argument('--pooling_l2', type=float, default=0, help='L2-penalty for all pooling output.')
-parser.add_argument('--mlp_layers', type=int, default=2, help='Number of output mlp layers.')
-parser.add_argument('--no_adj', dest='no_adj', action='store_true', help="Zero out adjacency matrix for ablation.")
 
-parser.add_argument('--no-rnn', dest='rnn', action='store_false', help='Do not use RNN layer.')
-parser.add_argument('--rnn_hidden', type=int, default=200, help='RNN hidden state size.')
-parser.add_argument('--rnn_layers', type=int, default=1, help='Number of RNN layers.')
-parser.add_argument('--rnn_dropout', type=float, default=0.5, help='RNN dropout rate.')
-
-parser.add_argument('--lr', type=float, default=1.0, help='Applies to sgd and adagrad.')
-parser.add_argument('--lr_decay', type=float, default=0.9, help='Learning rate decay rate.')
-parser.add_argument('--decay_epoch', type=int, default=5, help='Decay learning rate after this epoch.')
-parser.add_argument('--optim', choices=['sgd', 'adagrad', 'adam', 'adamax'], default='sgd', help='Optimizer: sgd, adagrad, adam or adamax.')
-parser.add_argument('--num_epoch', type=int, default=100, help='Number of total training epochs.')
-parser.add_argument('--batch_size', type=int, default=50, help='Training batch size.')
-parser.add_argument('--max_grad_norm', type=float, default=5.0, help='Gradient clipping.')
-parser.add_argument('--log_step', type=int, default=20, help='Print log every k steps.')
-parser.add_argument('--log', type=str, default='logs.txt', help='Write training log to file.')
-parser.add_argument('--save_epoch', type=int, default=100, help='Save model checkpoints every k epochs.')
-parser.add_argument('--save_dir', type=str, default='/usr0/home/gis/research/tacred-exploration/saved_models', help='Root dir for saving models.')
-parser.add_argument('--id', type=str, default='00', help='Model ID under which to save models.')
-parser.add_argument('--info', type=str, default='', help='Optional info for the experiment.')
-parser.add_argument('--test_confusion_save_file', default='')
-parser.add_argument('--seed', type=int, default=1234)
-parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
-parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
-
-parser.add_argument('--load', dest='load', action='store_true', help='Load pretrained model.')
-parser.add_argument('--model_file', type=str, help='Filename of the pretrained model.')
-
-# args = parser.parse_args()
-# make opt
-# opt = vars(args)
+def add_kg_model_params(cfg_dict, cwd):
+    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
+    with open(link_prediction_cfg_file, 'r') as handle:
+        link_prediction_config = yaml.load(handle)
+    link_prediction_model = cfg_dict['link_prediction']['model']
+    params = link_prediction_config[link_prediction_model]
+    params['name'] = link_prediction_model
+    params['freeze_embeddings'] = cfg_dict['link_prediction']['freeze_embeddings']
+    return params
 
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
@@ -84,6 +42,9 @@ with open(config_path, 'r') as file:
     cfg_dict = yaml.load(file)
 
 cfg_dict['topn'] = float(cfg_dict['topn'])
+
+if cfg_dict['link_prediction'] is not None:
+    cfg_dict['link_prediction']['model'] = add_kg_model_params(cfg_dict, cwd)
 opt = cfg_dict
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
@@ -109,8 +70,10 @@ assert emb_matrix.shape[1] == opt['emb_dim']
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
 train_batch = DataLoader(opt['data_dir'] + '/train.json', opt['batch_size'], opt, vocab, evaluation=False)
-dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True)
-test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True)
+dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True,
+                       kg_graph=train_batch.kg_graph)
+test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True,
+                        kg_graph=dev_batch.kg_graph)
 
 model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
 model_save_dir = opt['save_dir'] + '/' + model_id

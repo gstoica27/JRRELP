@@ -39,7 +39,7 @@ cuda: True
 cpu: False # Ignore CUDA.
 load: False
 model_file:
-kg_loss:
+link_prediction:
   model: 'ConvE'
   label_smoothing: .1
   lambda: .5
