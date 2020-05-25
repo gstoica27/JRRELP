@@ -60,10 +60,12 @@ class GCNRelationModel(nn.Module):
             self.emb_matrix = torch.from_numpy(self.emb_matrix)
             self.emb.weight.data.copy_(self.emb_matrix)
         # decide finetuning
-        if self.opt['topn'] <= 0:
+
+        self.opt['topn'] = float(self.opt['topn'])
+        if float(self.opt['topn']) <= 0:
             print("Do not finetune word embedding layer.")
             self.emb.weight.requires_grad = False
-        elif self.opt['topn'] < self.opt['vocab_size']:
+        elif float(self.opt['topn']) < self.opt['vocab_size']:
             print("Finetune top {} word embeddings.".format(self.opt['topn']))
             self.emb.weight.register_hook(lambda x: \
                     torch_utils.keep_partial_grad(x, self.opt['topn']))

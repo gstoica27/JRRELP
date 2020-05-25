@@ -21,6 +21,7 @@ from data.loader import DataLoader
 from model.trainer import GCNTrainer
 from utils import torch_utils, scorer, constant, helper
 from utils.vocab import Vocab
+import yaml
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, default='/usr0/home/gis/data/tacred/data/json')
@@ -85,6 +86,14 @@ init_time = time.time()
 
 # make opt
 opt = vars(args)
+cwd = os.getcwd()
+on_server = 'Desktop' not in cwd
+config_path = os.path.join(cwd, 'configs', f'{"nell" if on_server else "local"}_config.yaml')
+
+with open(config_path, 'r') as file:
+    cfg_dict = yaml.load(file)
+opt = cfg_dict
+
 label2id = constant.LABEL_TO_ID
 opt['num_class'] = len(label2id)
 
