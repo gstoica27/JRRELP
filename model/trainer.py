@@ -10,6 +10,7 @@ import numpy as np
 
 from model.gcn import GCNClassifier
 from utils import constant, torch_utils
+from collections import defaultdict
 
 class Trainer(object):
     def __init__(self, opt, emb_matrix=None):
@@ -59,6 +60,26 @@ def unpack_batch(batch, cuda):
     lens = batch[1].eq(0).long().sum(1).squeeze()
     return inputs, labels, tokens, head, subj_pos, obj_pos, lens
 
+def maybe_place_batch_on_cuda(batch, use_cuda):
+    placed_batch = {}
+    for name, data in batch.items():
+        if name == 'base':
+            base_batch = batch['base'][:10]
+            labels = batch['base'][10]
+            orig_idx = batch['base'][11]
+            if use_cuda:
+                placed_batch['base'] = base_batch.cuda()
+                labels = labels.cuda()
+            else:
+                placed_batch['base'] = base_batch
+        else:
+            if use_cuda:
+                placed_batch[name] = data.cuda()
+            else:
+                placed_batch[name] = data
+    return placed_batch, labels, orig_idx
+
+
 class GCNTrainer(Trainer):
     def __init__(self, opt, emb_matrix=None):
         self.opt = opt
@@ -72,7 +93,8 @@ class GCNTrainer(Trainer):
         self.optimizer = torch_utils.get_optimizer(opt['optim'], self.parameters, opt['lr'])
 
     def update(self, batch):
-        inputs, labels, tokens, head, subj_pos, obj_pos, lens = unpack_batch(batch, self.opt['cuda'])
+        # inputs, labels, tokens, head, subj_pos, obj_pos, lens = unpack_batch(batch, self.opt['cuda'])
+        inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
 
         # step forward
         self.model.train()
@@ -93,8 +115,9 @@ class GCNTrainer(Trainer):
         return loss_val
 
     def predict(self, batch, unsort=True):
-        inputs, labels, tokens, head, subj_pos, obj_pos, lens = unpack_batch(batch, self.opt['cuda'])
-        orig_idx = batch[11]
+        # inputs, labels, tokens, head, subj_pos, obj_pos, lens = unpack_batch(batch, self.opt['cuda'])
+        inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
+        # orig_idx = batch[11]
         # forward
         self.model.eval()
         logits, _ = self.model(inputs)

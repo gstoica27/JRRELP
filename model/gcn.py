@@ -11,6 +11,8 @@ import numpy as np
 from model.tree import Tree, head_to_tree, tree_to_adj
 from utils import constant, torch_utils
 
+
+
 class GCNClassifier(nn.Module):
     """ A wrapper classifier for GCNRelationModel. """
     def __init__(self, opt, emb_matrix=None):
@@ -69,7 +71,8 @@ class GCNRelationModel(nn.Module):
             print("Finetune all embeddings.")
 
     def forward(self, inputs):
-        words, masks, pos, ner, deprel, head, subj_pos, obj_pos, subj_type, obj_type = inputs # unpack
+        base_inputs = inputs['base']
+        words, masks, pos, ner, deprel, head, subj_pos, obj_pos, subj_type, obj_type = base_inputs # unpack
         l = (masks.data.cpu().numpy() == 0).astype(np.int64).sum(1)
         maxlen = max(l)
 
@@ -139,7 +142,8 @@ class GCN(nn.Module):
         return rnn_outputs
 
     def forward(self, adj, inputs):
-        words, masks, pos, ner, deprel, head, subj_pos, obj_pos, subj_type, obj_type = inputs # unpack
+        base_inputs = inputs['base']
+        words, masks, pos, ner, deprel, head, subj_pos, obj_pos, subj_type, obj_type = base_inputs # unpack
         word_embs = self.emb(words)
         embs = [word_embs]
         if self.opt['pos_dim'] > 0:
@@ -184,7 +188,7 @@ def pool(h, mask, type='max'):
         h = h.masked_fill(mask, 0)
         return h.sum(1)
 
-def rnn_zero_state(batch_size, hidden_dim, num_layers, bidirectional=True, use_cuda=True):
+def rnn_zero_state(batch_size, hidden_dim, num_layers, bidirectional=True, use_cuda=torch.cuda.is_available()):
     total_layers = num_layers * 2 if bidirectional else num_layers
     state_shape = (total_layers, batch_size, hidden_dim)
     h0 = c0 = Variable(torch.zeros(*state_shape), requires_grad=False)
