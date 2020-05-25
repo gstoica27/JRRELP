@@ -22,7 +22,6 @@ from model.trainer import GCNTrainer
 from utils import torch_utils, scorer, constant, helper
 from utils.vocab import Vocab
 import yaml
-# Local params: --prune_k 1 --data_dir "/Volumes/External HDD/dataset/tacred/data/json" --vocab_dir "/Volumes/External HDD/dataset/tacred/data/vocab" --save_dir "/Volumes/External HDD/dataset/tacred/saved_models" --log_step 1 --test_save_dir "/Volumes/External HDD/dataset/tacred/test_perfs" --lr 0.3 --rnn_hidden 200 --num_epoch 100 --pooling max --mlp_layers 2 --pooling_l2 .003 --seed 0
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, default='/usr0/home/gis/data/tacred/data/json')
 parser.add_argument('--vocab_dir', type=str, default='/usr0/home/gis/data/tacred/data/vocab')
@@ -73,19 +72,10 @@ parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
 parser.add_argument('--load', dest='load', action='store_true', help='Load pretrained model.')
 parser.add_argument('--model_file', type=str, help='Filename of the pretrained model.')
 
-args = parser.parse_args()
-
-torch.manual_seed(args.seed)
-np.random.seed(args.seed)
-random.seed(1234)
-if args.cpu:
-    args.cuda = False
-elif args.cuda:
-    torch.cuda.manual_seed(args.seed)
-init_time = time.time()
-
+# args = parser.parse_args()
 # make opt
-opt = vars(args)
+# opt = vars(args)
+
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
 config_path = os.path.join(cwd, 'configs', f'{"nell" if on_server else "local"}_config.yaml')
@@ -95,6 +85,14 @@ with open(config_path, 'r') as file:
 
 cfg_dict['topn'] = float(cfg_dict['topn'])
 opt = cfg_dict
+torch.manual_seed(opt['seed'])
+np.random.seed(opt['seed'])
+random.seed(1234)
+if opt['cpu']:
+    opt['cuda'] = False
+elif opt['cuda']:
+    torch.cuda.manual_seed(opt['seed'])
+init_time = time.time()
 
 label2id = constant.LABEL_TO_ID
 opt['num_class'] = len(label2id)
