@@ -103,7 +103,7 @@ class GCNTrainer(Trainer):
         logits, pooling_output = self.model(inputs)
         re_loss = self.criterion(logits, labels)
         losses['re_loss'] = re_loss.data.item()
-        cumulative_loss = re_loss.data.item()
+        cumulative_loss = re_loss
         # l2 decay on all conv layers
         if self.opt.get('conv_l2', 0) > 0:
             conv_l2_loss = self.model.conv_l2() * self.opt['conv_l2']
