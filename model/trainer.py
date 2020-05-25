@@ -68,13 +68,13 @@ def maybe_place_batch_on_cuda(batch, use_cuda):
             labels = batch['base'][10]
             orig_idx = batch['base'][11]
             if use_cuda:
-                placed_batch['base'] = base_batch.cuda()
+                placed_batch['base'] = [component.cuda() for component in base_batch]
                 labels = labels.cuda()
             else:
                 placed_batch['base'] = base_batch
         else:
             if use_cuda:
-                placed_batch[name] = data.cuda()
+                placed_batch[name] = [component.cuda() for component in data]
             else:
                 placed_batch[name] = data
     return placed_batch, labels, orig_idx
