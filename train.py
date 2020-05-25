@@ -88,7 +88,7 @@ init_time = time.time()
 opt = vars(args)
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
-config_path = os.path.join(cwd, 'configs', f'{"nell2" if on_server else "local"}_config.yaml')
+config_path = os.path.join(cwd, 'configs', f'{"nell" if on_server else "local"}_config.yaml')
 # config_path = os.path.join(cwd, 'configs', 'nell_config.yaml')
 with open(config_path, 'r') as file:
     cfg_dict = yaml.load(file)
