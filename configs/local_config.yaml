@@ -16,7 +16,7 @@ prune_k: 1
 conv_l2: 0
 pooling: 'max' # ['max', 'avg', 'sum']
 pooling_l2: 0.003
-mlp_layers: 3
+mlp_layers: 2
 no_adj: False
 rnn: True
 rnn_hidden: 200
