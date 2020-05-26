@@ -39,7 +39,7 @@ class GCNClassifier(nn.Module):
 
     def forward(self, inputs):
         logits, pooling_output, supplemental_losses = self.gcn_model(inputs)
-        logits = self.classifier(logits)
+        # logits = self.classifier(logits)
         return logits, pooling_output, supplemental_losses
 
 class GCNRelationModel(nn.Module):
@@ -64,13 +64,15 @@ class GCNRelationModel(nn.Module):
             print('ADDING LP STUFF')
             link_prediction_cfg = opt['link_prediction']['model']
             self.rel_emb = nn.Embedding(opt['num_relations'], link_prediction_cfg['rel_emb_dim'])
+            self.register_parameter('rel_bias', torch.nn.Parameter(torch.zeros((opt['num_relations']))))
             self.object_indices = torch.from_numpy(np.array(self.object_indices))
             if opt['cuda']:
                 self.object_indices = self.object_indices.cuda()
             self.lp_model = initialize_link_prediction_model(link_prediction_cfg)
 
         # Classifier for baseline model
-        # self.classifier = nn.Linear(opt['hidden_dim'], opt['num_class'])
+        in_dim = opt['hidden_dim']
+        self.classifier = nn.Linear(in_dim, opt['num_class'])
 
         # output mlp layers
         in_dim = opt['hidden_dim']*3
@@ -137,8 +139,10 @@ class GCNRelationModel(nn.Module):
             supplemental_losses = {'observed': observed_loss, 'baseline': baseline_loss}
             # Relation extraction loss
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
+            logits += self.rel_bias.expand_as(logits)
         else:
-            logits = outputs #self.classifier(outputs)
+            logits = self.classifier(outputs)
+            # logits = outputs
             supplemental_losses = {}
 
         return logits, h_out, supplemental_losses
