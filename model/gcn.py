@@ -71,8 +71,8 @@ class GCNRelationModel(nn.Module):
             self.lp_model = initialize_link_prediction_model(link_prediction_cfg)
 
         # Classifier for baseline model
-        in_dim = opt['hidden_dim']
-        self.classifier = nn.Linear(in_dim, opt['num_class'])
+        # in_dim = opt['hidden_dim']
+        # self.classifier = nn.Linear(in_dim, opt['num_class'])
 
         # output mlp layers
         in_dim = opt['hidden_dim']*3
