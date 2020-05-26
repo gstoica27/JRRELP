@@ -30,9 +30,9 @@ class GCNClassifier(nn.Module):
     def __init__(self, opt, emb_matrix=None):
         super().__init__()
         self.gcn_model = GCNRelationModel(opt, emb_matrix=emb_matrix)
-        # in_dim = opt['hidden_dim']
-        # self.classifier = nn.Linear(in_dim, opt['num_class'])
-        self.classifier = nn.Identity()
+        in_dim = opt['hidden_dim']
+        self.classifier = nn.Linear(in_dim, opt['num_class'])
+        # self.classifier = nn.Identity()
         self.opt = opt
 
     def conv_l2(self):
@@ -72,8 +72,8 @@ class GCNRelationModel(nn.Module):
             self.lp_model = initialize_link_prediction_model(link_prediction_cfg)
 
         # Classifier for baseline model
-        in_dim = opt['hidden_dim']
-        self.logits_classifier = nn.Linear(in_dim, opt['num_class'])
+        # in_dim = opt['hidden_dim']
+        # self.logits_classifier = nn.Linear(in_dim, opt['num_class'])
 
         # output mlp layers
         in_dim = opt['hidden_dim']*3
@@ -141,8 +141,8 @@ class GCNRelationModel(nn.Module):
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
             logits += self.rel_bias.expand_as(logits)
         else:
-            logits = self.logits_classifier(outputs)
-            # logits = outputs
+            # logits = self.logits_classifier(outputs)
+            logits = outputs
             supplemental_losses = {}
 
         return logits, h_out, supplemental_losses
