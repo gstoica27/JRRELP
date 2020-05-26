@@ -30,8 +30,8 @@ class GCNClassifier(nn.Module):
     def __init__(self, opt, emb_matrix=None):
         super().__init__()
         self.gcn_model = GCNRelationModel(opt, emb_matrix=emb_matrix)
-        in_dim = opt['hidden_dim']
-        self.classifier = nn.Linear(in_dim, opt['num_class'])
+        # in_dim = opt['hidden_dim']
+        # self.classifier = nn.Linear(in_dim, opt['num_class'])
         # self.classifier = nn.Identity()
         self.opt = opt
 
@@ -40,7 +40,7 @@ class GCNClassifier(nn.Module):
 
     def forward(self, inputs):
         logits, pooling_output, supplemental_losses = self.gcn_model(inputs)
-        logits = self.classifier(logits)
+        # logits = self.classifier(logits)
         return logits, pooling_output, supplemental_losses
 
 class GCNRelationModel(nn.Module):
@@ -71,16 +71,16 @@ class GCNRelationModel(nn.Module):
                 self.object_indices = self.object_indices.cuda()
             self.lp_model = initialize_link_prediction_model(link_prediction_cfg)
 
-        # Classifier for baseline model
-        # in_dim = opt['hidden_dim']
-        # self.logits_classifier = nn.Linear(in_dim, opt['num_class'])
-
         # output mlp layers
         in_dim = opt['hidden_dim']*3
         layers = [nn.Linear(in_dim, opt['hidden_dim']), nn.ReLU()]
         for _ in range(self.opt['mlp_layers']-1):
             layers += [nn.Linear(opt['hidden_dim'], opt['hidden_dim']), nn.ReLU()]
         self.out_mlp = nn.Sequential(*layers)
+
+        # Classifier for baseline model
+        in_dim = opt['hidden_dim']
+        self.logits_classifier = nn.Linear(in_dim, opt['num_class'])
 
     def init_embeddings(self):
         if self.emb_matrix is None:
@@ -141,8 +141,8 @@ class GCNRelationModel(nn.Module):
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
             logits += self.rel_bias.expand_as(logits)
         else:
-            # logits = self.logits_classifier(outputs)
-            logits = outputs
+            logits = self.logits_classifier(outputs)
+            # logits = outputs
             supplemental_losses = {}
 
         return logits, h_out, supplemental_losses
