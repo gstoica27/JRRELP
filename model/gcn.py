@@ -142,7 +142,7 @@ class GCNRelationModel(nn.Module):
             logits += self.rel_bias.expand_as(logits)
         else:
             logits = self.classifier(outputs)
-            logits = outputs
+            # logits = outputs
             supplemental_losses = {}
 
         return logits, h_out, supplemental_losses
