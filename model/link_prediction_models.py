@@ -74,8 +74,8 @@ class DistMult(torch.nn.Module):
 class ConvE(torch.nn.Module):
     def __init__(self, args):
         super(ConvE, self).__init__()
-        self.emb_e = torch.nn.Embedding(args['num_entities'],
-                                        args['ent_emb_dim'])
+        # self.emb_e = torch.nn.Embedding(args['num_entities'],
+        #                                 args['ent_emb_dim'])
         # self.emb_rel = torch.nn.Embedding(args['num_relations'],
         #                                   args['embedding_dim'])
 
@@ -103,7 +103,7 @@ class ConvE(torch.nn.Module):
         self.bn1 = torch.nn.BatchNorm2d(32)
         self.bn2 = torch.nn.BatchNorm1d(args['ent_emb_dim'])
         # offset b/c we don't include subjects in calculation
-        self.register_parameter('b', Parameter(torch.zeros((args['num_entities'] - 2))))
+        self.register_parameter('b', Parameter(torch.zeros((args['num_objects']))))
         self.fc = torch.nn.Linear(output_size,args['ent_emb_dim'])
         # load model if exists
         # if args['load_path'] is not None:

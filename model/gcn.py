@@ -30,9 +30,6 @@ class GCNClassifier(nn.Module):
     def __init__(self, opt, emb_matrix=None):
         super().__init__()
         self.gcn_model = GCNRelationModel(opt, emb_matrix=emb_matrix)
-        # in_dim = opt['hidden_dim']
-        # self.classifier = nn.Linear(in_dim, opt['num_class'])
-        # self.classifier = nn.Identity()
         self.opt = opt
 
     def conv_l2(self):
@@ -40,7 +37,6 @@ class GCNClassifier(nn.Module):
 
     def forward(self, inputs):
         logits, pooling_output, supplemental_losses = self.gcn_model(inputs)
-        # logits = self.classifier(logits)
         return logits, pooling_output, supplemental_losses
 
 class GCNRelationModel(nn.Module):
@@ -129,7 +125,7 @@ class GCNRelationModel(nn.Module):
             subjects, relations, known_objects = inputs['kg']
             object_embs = self.emb(self.object_indices)
             subject_embs = self.emb(subjects)
-            relation_embs = self.emb(relations)
+            relation_embs = self.rel_emb(relations)
             # Predict objects with LP model
             observed_preds = self.lp_model(subject_embs, relation_embs, object_embs)
             baseline_preds = self.lp_model(subject_embs, outputs, object_embs)

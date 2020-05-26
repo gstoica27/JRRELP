@@ -97,6 +97,7 @@ if cfg_dict['link_prediction'] is not None:
     cfg_dict['num_relations'] = len(test_batch.kg_graph['relations'])
     cfg_dict['num_subjects'] = len(test_batch.kg_graph['subjects'])
     cfg_dict['num_objects'] = len(test_batch.kg_graph['objects'])
+    cfg_dict['link_prediction']['model']['num_objects'] = cfg_dict['num_objects']
 
 # print model info
 helper.print_config(opt)

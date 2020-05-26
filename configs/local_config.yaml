@@ -42,8 +42,8 @@ attn: True # Use attention layer.
 load: False
 model_file:
 link_prediction:
-#  model: 'ConvE'
-#  label_smoothing: .1
-#  lambda: 1.
-#  vocab_path: '/Volumes/External HDD/dataset/tacred/data/json'
-#  freeze_embeddings: False
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: 1.
+  vocab_path: '/Volumes/External HDD/dataset/tacred/data/json'
+  freeze_embeddings: False
