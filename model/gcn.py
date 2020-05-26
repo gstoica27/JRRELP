@@ -30,7 +30,7 @@ class GCNClassifier(nn.Module):
     def __init__(self, opt, emb_matrix=None):
         super().__init__()
         self.gcn_model = GCNRelationModel(opt, emb_matrix=emb_matrix)
-        in_dim = opt['hidden_dim']
+        # in_dim = opt['hidden_dim']
         # self.classifier = nn.Linear(in_dim, opt['num_class'])
         self.opt = opt
 
@@ -88,7 +88,6 @@ class GCNRelationModel(nn.Module):
             self.emb_matrix = torch.from_numpy(self.emb_matrix)
             self.emb.weight.data.copy_(self.emb_matrix)
         # decide finetuning
-
         if self.opt['topn'] <= 0:
             print("Do not finetune word embedding layer.")
             self.emb.weight.requires_grad = False
