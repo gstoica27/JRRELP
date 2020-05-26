@@ -58,7 +58,6 @@ class GCNRelationModel(nn.Module):
         self.gcn = GCN(opt, embeddings, opt['hidden_dim'], opt['num_layers'])
         # LP Model
         if opt['link_prediction'] is not None:
-            print('ADDING LP STUFF')
             link_prediction_cfg = opt['link_prediction']['model']
             self.rel_emb = nn.Embedding(opt['num_relations'], link_prediction_cfg['rel_emb_dim'])
             self.register_parameter('rel_bias', torch.nn.Parameter(torch.zeros((opt['num_relations']))))
@@ -71,7 +70,13 @@ class GCNRelationModel(nn.Module):
         in_dim = opt['hidden_dim']*3
         layers = [nn.Linear(in_dim, opt['hidden_dim']), nn.ReLU()]
         for _ in range(self.opt['mlp_layers']-1):
-            layers += [nn.Linear(opt['hidden_dim'], opt['hidden_dim']), nn.ReLU()]
+            if opt['link_prediction'] is None or _ < self.opt['mlp_layers'] - 2:
+                output_dim = opt['hidden_dim']
+                layers += [nn.Linear(opt['hidden_dim'], output_dim), nn.ReLU()]
+            else:
+                output_dim = opt['link_prediction']['model']['rel_emb_dim']
+                layers += [nn.Linear(opt['hidden_dim'], output_dim)]
+            # layers += [nn.Linear(opt['hidden_dim'], output_dim), nn.ReLU()]
         self.out_mlp = nn.Sequential(*layers)
 
         # Classifier for baseline model
