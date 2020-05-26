@@ -42,7 +42,7 @@ model_file:
 link_prediction:
   model: 'ConvE'
   label_smoothing: .1
-  lambda: .1
+  lambda: .25
   vocab_path: '/usr0/home/gis/data/tacred/data/json'
   freeze_embeddings: False
 
