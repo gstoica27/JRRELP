@@ -116,7 +116,7 @@ class GCNTrainer(Trainer):
         if self.opt['link_prediction'] is not None:
             observed_loss = suppplemental_losses['observed']
             predicted_loss = suppplemental_losses['baseline']
-            main_loss += (observed_loss + predicted_loss) * self.opt['link_prediction']['lambda']
+        main_loss += (observed_loss + predicted_loss) * self.opt['link_prediction']['lambda']
             observed_loss_value = observed_loss.data.item()
             predicted_loss_value = predicted_loss.data.item()
             losses.update({'kg_observed': observed_loss_value, 'kg_predicted': predicted_loss_value})
