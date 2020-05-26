@@ -30,8 +30,8 @@ class GCNClassifier(nn.Module):
     def __init__(self, opt, emb_matrix=None):
         super().__init__()
         self.gcn_model = GCNRelationModel(opt, emb_matrix=emb_matrix)
-        # in_dim = opt['hidden_dim']
-        # self.classifier = nn.Linear(in_dim, opt['num_class'])
+        in_dim = opt['hidden_dim']
+        self.classifier = nn.Linear(in_dim, opt['num_class'])
         self.opt = opt
 
     def conv_l2(self):
@@ -39,7 +39,7 @@ class GCNClassifier(nn.Module):
 
     def forward(self, inputs):
         logits, pooling_output, supplemental_losses = self.gcn_model(inputs)
-        # logits = self.classifier(outputs)
+        logits = self.classifier(logits)
         return logits, pooling_output, supplemental_losses
 
 class GCNRelationModel(nn.Module):
@@ -61,6 +61,7 @@ class GCNRelationModel(nn.Module):
         self.gcn = GCN(opt, embeddings, opt['hidden_dim'], opt['num_layers'])
         # LP Model
         if opt['link_prediction'] is not None:
+            print('ADDING LP STUFF')
             link_prediction_cfg = opt['link_prediction']['model']
             self.rel_emb = nn.Embedding(opt['num_relations'], link_prediction_cfg['rel_emb_dim'])
             self.object_indices = torch.from_numpy(np.array(self.object_indices))
@@ -69,7 +70,7 @@ class GCNRelationModel(nn.Module):
             self.lp_model = initialize_link_prediction_model(link_prediction_cfg)
 
         # Classifier for baseline model
-        self.classifier = nn.Linear(opt['hidden_dim'], opt['num_class'])
+        # self.classifier = nn.Linear(opt['hidden_dim'], opt['num_class'])
 
         # output mlp layers
         in_dim = opt['hidden_dim']*3
@@ -137,7 +138,7 @@ class GCNRelationModel(nn.Module):
             # Relation extraction loss
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
         else:
-            logits = self.classifier(outputs)
+            logits = outputs #self.classifier(outputs)
             supplemental_losses = {}
 
         return logits, h_out, supplemental_losses
