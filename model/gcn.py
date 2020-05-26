@@ -39,7 +39,7 @@ class GCNClassifier(nn.Module):
 
     def forward(self, inputs):
         logits, pooling_output, supplemental_losses = self.gcn_model(inputs)
-        # logits = self.classifier(logits)
+        logits = self.classifier(logits)
         return logits, pooling_output, supplemental_losses
 
 class GCNRelationModel(nn.Module):
@@ -141,8 +141,8 @@ class GCNRelationModel(nn.Module):
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
             logits += self.rel_bias.expand_as(logits)
         else:
-            logits = self.classifier(outputs)
-            # logits = outputs
+            # logits = self.classifier(outputs)
+            logits = outputs
             supplemental_losses = {}
 
         return logits, h_out, supplemental_losses
