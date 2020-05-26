@@ -80,7 +80,7 @@ class GCNRelationModel(nn.Module):
 
         # Classifier for baseline model
         in_dim = opt['hidden_dim']
-        self.logits_classifier = nn.Linear(in_dim, opt['num_class'])
+        self.classifier = nn.Linear(in_dim, opt['num_class'])
 
     def init_embeddings(self):
         if self.emb_matrix is None:
@@ -141,7 +141,7 @@ class GCNRelationModel(nn.Module):
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
             logits += self.rel_bias.expand_as(logits)
         else:
-            logits = self.logits_classifier(outputs)
+            logits = self.classifier(outputs)
             # logits = outputs
             supplemental_losses = {}
 
