@@ -32,6 +32,7 @@ class GCNClassifier(nn.Module):
         self.gcn_model = GCNRelationModel(opt, emb_matrix=emb_matrix)
         # in_dim = opt['hidden_dim']
         # self.classifier = nn.Linear(in_dim, opt['num_class'])
+        self.classifier = nn.Identity()
         self.opt = opt
 
     def conv_l2(self):
@@ -39,7 +40,7 @@ class GCNClassifier(nn.Module):
 
     def forward(self, inputs):
         logits, pooling_output, supplemental_losses = self.gcn_model(inputs)
-        # logits = self.classifier(logits)
+        logits = self.classifier(logits)
         return logits, pooling_output, supplemental_losses
 
 class GCNRelationModel(nn.Module):
