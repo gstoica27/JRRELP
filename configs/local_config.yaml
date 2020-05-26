@@ -46,3 +46,4 @@ link_prediction:
   label_smoothing: .1
   lambda: 1.
   freeze_embeddings: False
+  with_relu: True

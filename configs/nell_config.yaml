@@ -45,4 +45,5 @@ link_prediction:
   lambda: .5
   vocab_path: '/usr0/home/gis/data/tacred/data/json'
   freeze_embeddings: False
+  with_relu: True
 

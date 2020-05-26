@@ -76,6 +76,8 @@ class GCNRelationModel(nn.Module):
             else:
                 output_dim = opt['link_prediction']['model']['rel_emb_dim']
                 layers += [nn.Linear(opt['hidden_dim'], output_dim)]
+                if opt['link_prediction']['with_relu']:
+                    layers += [nn.ReLU()]
             # layers += [nn.Linear(opt['hidden_dim'], output_dim), nn.ReLU()]
         self.out_mlp = nn.Sequential(*layers)
 
