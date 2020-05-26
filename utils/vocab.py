@@ -47,6 +47,10 @@ class Vocab(object):
             self.id2word, self.word2id = self.load(filename)
             self.size = len(self.id2word)
             print("Vocab size {} loaded from file".format(self.size))
+
+            self.subj_idxs = [value for word, value in self.word2id.items() if 'SUBJ-' in word]
+            self.obj_idxs = [value for word, value in self.word2id.items() if 'OBJ-' in word]
+
         else:
             print("Creating vocab from scratch...")
             assert word_counter is not None, "word_counter is not provided for vocab creation."

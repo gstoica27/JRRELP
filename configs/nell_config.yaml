@@ -40,9 +40,9 @@ cpu: False # Ignore CUDA.
 load: False
 model_file:
 link_prediction:
-  model: 'ConvE'
-  label_smoothing: .1
-  lambda: .5
-  vocab_path: '/usr0/home/gis/data/tacred/data/json'
-  freeze_embeddings: False
+#  model: 'ConvE'
+#  label_smoothing: .1
+#  lambda: .5
+#  vocab_path: '/usr0/home/gis/data/tacred/data/json'
+#  freeze_embeddings: False
 

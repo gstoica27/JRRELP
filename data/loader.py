@@ -103,6 +103,7 @@ class DataLoader(object):
             self.kg_graph[(subject_id, relation)].add(object_id)
             self.kg_graph['subjects'].add(subject_id)
             self.kg_graph['objects'].add(object_id)
+            self.kg_graph['relations'].add(relation)
             processed_data['kg'] += [(subject_id, relation, object_id)]
         # KG aggregation
         for idx in range(len(processed_data['kg'])):

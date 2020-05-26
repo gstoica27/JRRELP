@@ -43,8 +43,6 @@ with open(config_path, 'r') as file:
 
 cfg_dict['topn'] = float(cfg_dict['topn'])
 
-if cfg_dict['link_prediction'] is not None:
-    cfg_dict['link_prediction']['model'] = add_kg_model_params(cfg_dict, cwd)
 opt = cfg_dict
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
@@ -66,6 +64,9 @@ emb_file = opt['vocab_dir'] + '/embedding.npy'
 emb_matrix = np.load(emb_file)
 assert emb_matrix.shape[0] == vocab.size
 assert emb_matrix.shape[1] == opt['emb_dim']
+# Add subject/object indices
+opt['subject_indices'] = vocab.subj_idxs
+opt['object_indices'] = vocab.obj_idxs
 
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
@@ -90,6 +91,12 @@ os.makedirs(test_save_dir, exist_ok=True)
 test_save_file = os.path.join(test_save_dir, 'test_records.pkl')
 test_confusion_save_file = os.path.join(test_save_dir, 'test_confusion_matrix.pkl')
 dev_confusion_save_file = os.path.join(test_save_dir, 'dev_confusion_matrix.pkl')
+
+if cfg_dict['link_prediction'] is not None:
+    cfg_dict['link_prediction']['model'] = add_kg_model_params(cfg_dict, cwd)
+    cfg_dict['num_relations'] = len(test_batch.kg_graph['relations'])
+    cfg_dict['num_subjects'] = len(test_batch.kg_graph['subjects'])
+    cfg_dict['num_objects'] = len(test_batch.kg_graph['objects'])
 
 # print model info
 helper.print_config(opt)

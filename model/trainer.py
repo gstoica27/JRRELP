@@ -100,7 +100,7 @@ class GCNTrainer(Trainer):
         # step forward
         self.model.train()
         self.optimizer.zero_grad()
-        logits, pooling_output = self.model(inputs)
+        logits, pooling_output, suppplemental_losses = self.model(inputs)
         main_loss = self.criterion(logits, labels)
         losses['re_loss'] = main_loss.data.item()
         # l2 decay on all conv layers
@@ -113,6 +113,13 @@ class GCNTrainer(Trainer):
             pooling_l2_loss = self.opt['pooling_l2'] * (pooling_output ** 2).sum(1).mean()
             main_loss += pooling_l2_loss
             losses['pooling_l2'] = pooling_l2_loss.data.item()
+        if self.opt['link_prediction'] is not None:
+            observed_loss = suppplemental_losses['observed']
+            predicted_loss = suppplemental_losses['baseline']
+            main_loss += (observed_loss + predicted_loss) * self.opt['link_prediction']['lambda']
+            observed_loss_value = observed_loss.data.item()
+            predicted_loss_value = predicted_loss.data.item()
+            losses.update({'kg_observed': observed_loss_value, 'kg_predicted': predicted_loss_value})
         loss_val = main_loss.item()
         # backward
         main_loss.backward()
@@ -126,7 +133,7 @@ class GCNTrainer(Trainer):
         # orig_idx = batch[11]
         # forward
         self.model.eval()
-        logits, _ = self.model(inputs)
+        logits, _, _ = self.model(inputs)
         loss = self.criterion(logits, labels)
         probs = F.softmax(logits, 1).data.cpu().numpy().tolist()
         predictions = np.argmax(logits.data.cpu().numpy(), axis=1).tolist()
