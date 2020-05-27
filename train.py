@@ -31,7 +31,7 @@ def add_kg_model_params(cfg_dict, cwd):
     link_prediction_model = cfg_dict['link_prediction']['model']
     params = link_prediction_config[link_prediction_model]
     params['name'] = link_prediction_model
-    params['freeze_embeddings'] = cfg_dict['link_prediction']['freeze_embeddings']
+    params['freeze_network'] = cfg_dict['link_prediction']['freeze_network']
     return params
 
 cwd = os.getcwd()
@@ -153,7 +153,7 @@ for epoch in range(1, opt['num_epoch']+1):
     print("epoch {}: train_loss = {:.6f}, train_eval_loss = {:.6f}, dev_f1 = {:.4f}".format(
         epoch, train_loss, train_eval_loss, train_f1))
     train_score = train_f1
-    file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}".format(epoch, train_loss, train_eval_loss, train_f1))
+    # file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}".format(epoch, train_loss, train_eval_loss, train_f1))
     
     # eval on dev
     print("Evaluating on dev set...")

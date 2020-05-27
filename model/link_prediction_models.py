@@ -1,10 +1,10 @@
 # Copied from https://github.com/TimDettmers/ConvE/blob/master/model.py
 
+from operator import mul
+from functools import reduce
 import torch
 from torch.nn import functional as F, Parameter
 from torch.autograd import Variable
-
-
 from torch.nn.init import xavier_normal_, xavier_uniform_
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
@@ -106,11 +106,11 @@ class ConvE(torch.nn.Module):
         self.register_parameter('b', Parameter(torch.zeros((args['num_objects']))))
         self.fc = torch.nn.Linear(output_size,args['ent_emb_dim'])
         # load model if exists
-        # if args['load_path'] is not None:
-        #     self.load_model(args['load_path'])
-        #     self.is_pretrained = True
-        # else:
-        #     self.is_pretrained = False
+        if args['load_path'] is not None:
+            self.load_model(args['load_path'], freeze_network=args['freeze_network'])
+            self.is_pretrained = True
+        else:
+            self.is_pretrained = False
 
     def forward(self, e1, rel, e2s):
         #print('Are cuda? | e1: {} | emb_e: {} | rel: {}'.format(e1.is_cuda, self.emb_e.weight.is_cuda, rel.is_cuda))
@@ -139,13 +139,25 @@ class ConvE(torch.nn.Module):
 
         return pred
 
-    # def load_model(self, model_path):
-    #     state_dict = torch.load(model_path)
-    #     # relevant_state_dict = dict([(k,v) for k,v in state_dict.items() if 'emb' not in k and k != 'b'])
-    #     self.load_state_dict(state_dict)
-    #     # Only non-entity model parameters can be trained. This forces learned sentence encoding to
-    #     # align with pre-trained relation embeddings, which are already used to evaluate the RE model's
-    #     # loss through the decoder matching layer
-    #     if self.opt['freeze_embeddings']:
-    #         self.emb_e.weight.requires_grad = False
-    #         self.emb_rel.weight.requires_grad = False
+    def load_model(self, model_path, freeze_network=False):
+        state_dict = torch.load(model_path)
+        relevant_state_dict = {}
+        for (k,v) in state_dict.items():
+            if k != 'b' and 'emb' not in k:
+                relevant_state_dict[k] = v
+            elif k == 'b' and reduce(mul, v.size()) == 19:
+                relevant_state_dict[k] = v[2:]
+
+        # relevant_state_dict = dict([(k,v) if k != 'b' and v.size() == 19 \
+        #                             else (k, v[2:]) for k,v in state_dict.items() \
+        #                             if 'emb' not in k])
+
+        self.load_state_dict(relevant_state_dict)
+        # Only non-entity model parameters can be trained. This forces learned sentence encoding to
+        # align with pre-trained relation embeddings, which are already used to evaluate the RE model's
+        # loss through the decoder matching layer
+        if freeze_network:
+            for parameter in self.parameters():
+                parameter.requires_grad = False
+            # self.emb_e.weight.requires_grad = False
+            # self.emb_rel.weight.requires_grad = False

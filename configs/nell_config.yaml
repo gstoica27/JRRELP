@@ -32,9 +32,9 @@ max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
 log:  'logs.txt'  # Write training log to file.
 save_epoch: 100 # Save model checkpoints every k epochs
-id: 'CGCN-ConvE-NoReLU-Lambda.5-Seed76'  # Model ID under which to save models.
+id: 'CGCN-ConvE-Lambda.1-RelEmb300-Pretrained-Seed0'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 76  # random seed
+seed: 0  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
@@ -43,7 +43,6 @@ link_prediction:
   model: 'ConvE'
   label_smoothing: .1
   lambda: .5
-  vocab_path: '/usr0/home/gis/data/tacred/data/json'
-  freeze_embeddings: False
+  freeze_network: False
   with_relu: True
 
