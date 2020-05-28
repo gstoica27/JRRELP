@@ -137,8 +137,28 @@ class GCNRelationModel(nn.Module):
             observed_preds = self.lp_model(subject_embs, relation_embs, object_embs)
             baseline_preds = self.lp_model(subject_embs, outputs, object_embs)
             # Compute loss terms
-            observed_loss = self.lp_model.loss(observed_preds, known_objects)
-            baseline_loss = self.lp_model.loss(baseline_preds, known_objects)
+            if self.opt['link_prediction']['without_no_relation']:
+                # Void loss from examples containing "no_relation"
+                # TODO: It might be best to find a better approach for this b/c/ this can mess up the batch training.
+                #  Wherein the relation embeddings are updated at a completely different pace than the rest of the network.
+                #  (e.g. batch numbers are different every time)
+                no_relation_blacklist = torch.eq(relations, constant.NO_RELATION_ID).eq(0).type(torch.float32).unsqueeze(-1)
+                observed_loss = self.lp_model.loss(observed_preds, known_objects)
+                baseline_loss = self.lp_model.loss(baseline_preds, known_objects)
+                observed_loss = observed_loss * no_relation_blacklist
+                baseline_loss = baseline_loss * no_relation_blacklist
+                # Mean over column dimension
+                observed_loss = observed_loss.mean(-1)
+                baseline_loss = baseline_loss.mean(-1)
+                # Total positive relation examples
+                num_positives = no_relation_blacklist.sum()
+                # Mean only over the positive examples
+                observed_loss = observed_loss.sum() / num_positives
+                baseline_loss = baseline_loss.sum() / num_positives
+            else:
+                observed_loss = self.lp_model.loss(observed_preds, known_objects).mean()
+                baseline_loss = self.lp_model.loss(baseline_preds, known_objects).mean()
+
             supplemental_losses = {'observed': observed_loss, 'baseline': baseline_loss}
             # Relation extraction loss
             logits = torch.mm(outputs, self.rel_emb.weight.transpose(1, 0))
