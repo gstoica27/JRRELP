@@ -32,9 +32,9 @@ max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
 log:  'logs.txt'  # Write training log to file.
 save_epoch: 100 # Save model checkpoints every k epochs
-id: 'CGCN-ConvE-Lambda.1-Seed0-RelEmb100'  # Model ID under which to save models.
+id: 'CGCN-ConvE-Lambda.1-Seed1717-RelEmb100'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 0  # random seed
+seed: 1717  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
@@ -42,8 +42,8 @@ model_file:
 link_prediction:
   model: 'ConvE'
   label_smoothing: .1
-  lambda: .5
-  freeze_network: True
+  lambda: .1
+  freeze_network: False
   with_relu: True
-  without_observed: True
+  without_observed: False
 
