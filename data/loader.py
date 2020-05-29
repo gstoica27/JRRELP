@@ -162,9 +162,12 @@ class DataLoader(object):
         subjects = torch.LongTensor(subjects)
         relations = torch.LongTensor(relations)
         labels = []
-        for sample_objects in known_objects:
-            sample_known = np.zeros(num_objects, dtype=np.float32)
-            sample_known[list(sample_objects)] = 1.
+        for sample_objects, relation in zip(known_objects, relations):
+            if relation == constant.NO_RELATION_ID:
+                sample_known = np.ones(num_objects, dtype=np.float32)
+            else:
+                sample_known = np.zeros(num_objects, dtype=np.float32)
+                sample_known[list(sample_objects)] = 1.
             labels.append(sample_known)
         labels = np.stack(labels, axis=0)
         labels = torch.FloatTensor(labels)
