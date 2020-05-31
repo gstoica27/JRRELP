@@ -155,17 +155,16 @@ if __name__ == '__main__':
 
     raw_semevel_dir = '/Users/georgestoica/Desktop/SemEval2010_task8_all_data'
     train_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_training', 'TRAIN_FILE.TXT')
-    test_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_testing', 'TEST_FILE.TXT')
+    test_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_testing_keys', 'TEST_FILE_FULL.TXT')
     # train_sentences = parse_raw_text(train_file)
     # test_sentences = parse_raw_text(test_file)
 
     # train_data = augment_data(train_data, train_sentences, nlp)
     # test_data = augment_data(test_data, test_sentences, nlp)
     train_data = extract_nlp_components(train_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
-    test_data = extract_nlp_components(test_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
-
     train_save_file = os.path.join(data_dir, 'train_new.json')
-    test_save_file = os.path.join(data_dir, 'test_new.json')
     json.dump(train_data, open(train_save_file, 'w'))
+    test_data = extract_nlp_components(test_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
+    test_save_file = os.path.join(data_dir, 'test_new.json')
     json.dump(test_data, open(test_save_file, 'w'))
 
