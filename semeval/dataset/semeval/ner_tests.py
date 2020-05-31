@@ -145,14 +145,19 @@ def augment_data(data, sentences, nlp):
 if __name__ == '__main__':
     stanza.download('en')
     stanza_nlp = stanza.Pipeline('en')
-    core_nlp = StanfordCoreNLP(r'/Users/georgestoica/Desktop/stanford-corenlp-4.0.0')
+    core_nlp = StanfordCoreNLP(r'/Users/georgestoica/Desktop/stanford-corenlp-full-2016-10-31') #stanford-corenlp-4.0.0
 
     data_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval'
-    # train_file = os.path.join(data_dir, 'train.json')
+    # train_file = os.path.join(data_dir, 'train_sampled.json')
     # test_file = os.path.join(data_dir, 'test.json')
     # train_data = load_data(train_file)
     # test_data = load_data(test_file)
-
+    # mismatch_sentences = []
+    # for idx, d in enumerate(train_data):
+    #     tokens = d['token']
+    #     sentence = stanza_nlp(' '.join(tokens)).sentences[0]
+    #     if len(tokens) != len(sentence.words):
+    #         mismatch_sentences.append(d)
     raw_semevel_dir = '/Users/georgestoica/Desktop/SemEval2010_task8_all_data'
     train_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_training', 'TRAIN_FILE.TXT')
     test_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_testing_keys', 'TEST_FILE_FULL.TXT')
@@ -162,7 +167,7 @@ if __name__ == '__main__':
     # train_data = augment_data(train_data, train_sentences, nlp)
     # test_data = augment_data(test_data, test_sentences, nlp)
     train_data = extract_nlp_components(train_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
-    train_save_file = os.path.join(data_dir, 'train_new.json')
+    train_save_file = os.path.join(data_dir, 'train_sampled.json')
     json.dump(train_data, open(train_save_file, 'w'))
     test_data = extract_nlp_components(test_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
     test_save_file = os.path.join(data_dir, 'test_new.json')

@@ -1,0 +1,49 @@
+data_dir: '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/dataset/semeval'
+vocab_dir: '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/dataset/semeval/vocab'
+test_save_dir: '/Volumes/External HDD/dataset/semeval/test_perfs'
+save_dir: '/Volumes/External HDD/dataset/semeval/saved_models'
+emb_dim: 300  # Word embedding dimension.
+ner_dim: 30 # NER embedding dimension.
+pos_dim: 30 # POS embedding dimension.
+hidden_dim: 200 # RNN hidden state size.
+num_layers: 2 # Num of RNN layers.
+input_dropout: .5 # Input and RNN dropout rate.
+gcn_dropout: .5
+word_dropout: .04 # The rate at which randomly set a word to UNK.
+topn: 1e10  # Only finetune top N embeddings.
+lower: False  # Lowercase all words.
+prune_k: 1
+conv_l2: 0
+pooling: 'max' # ['max', 'avg', 'sum']
+pooling_l2: 0.003
+mlp_layers: 2
+no_adj: False
+rnn: True
+rnn_hidden: 200
+rnn_layers: 1
+rnn_dropout: 0.5
+lr: 0.3 # Applies to SGD and Adagrad
+lr_decay: 0.9
+decay_epoch: 0.9
+optim: 'sgd'  # sgd, adagrad, adam or adamax.
+num_epoch: 100 # number of epochs
+batch_size: 50
+max_grad_norm: 5.0  # Gradient Clipping.
+log_step: 1  # Print log every k steps.
+log:  'logs.txt'  # Write training log to file.
+save_epoch: 5 # Save model checkpoints every k epochs
+id: 'joint-re-lp'  # Model ID under which to save models.
+info: ''  # Optional info for the experiment.
+seed: 1234  # random seed
+cuda: False
+cpu: True # Ignore CUDA.
+load: False
+model_file:
+link_prediction:
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: 1.
+  freeze_network: True
+  with_relu: True
+  without_observed: False
+  without_no_relation: False
