@@ -32,14 +32,14 @@ max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
 log:  'logs.txt'  # Write training log to file.
 save_epoch: 100 # Save model checkpoints every k epochs
-id: 'CGCNSemEvalReportedSeed1234'  # Model ID under which to save models.
+id: 'CGCNSemEvalReportedSeed101'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 1234  # random seed
+seed: 101  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
 model_file:
-mask_mentions: False
+mask_mentions: True
 link_prediction:
 #  model: 'ConvE'
 #  label_smoothing: .1
