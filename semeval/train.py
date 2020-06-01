@@ -38,8 +38,8 @@ cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
 dataset = 'semeval'
 config_path = os.path.join(cwd,
+                           dataset,
                            'configs',
-                           # dataset,
                            dataset, f'{"nell" if on_server else "local"}_config.yaml')
 # config_path = os.path.join(cwd, 'configs', 'nell_config.yaml')
 with open(config_path, 'r') as file:
