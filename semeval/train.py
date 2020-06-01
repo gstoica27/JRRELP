@@ -74,7 +74,7 @@ opt['object_indices'] = vocab.obj_idxs
 
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
-train_batch = DataLoader(opt['data_dir'] + '/train.json', opt['batch_size'], opt, vocab, evaluation=False)
+train_batch = DataLoader(opt['data_dir'] + '/train_sampled.json', opt['batch_size'], opt, vocab, evaluation=False)
 dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True,
                        kg_graph=train_batch.kg_graph)
 test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True,
@@ -173,8 +173,8 @@ for epoch in range(1, opt['num_epoch']+1):
 
     dev_p, dev_r, dev_f1 = scorer.score(dev_batch.gold(), dev_predictions)
     print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch, train_loss, dev_loss, dev_f1))
-    # dev_score = dev_f1
-    dev_score = train_score
+    dev_score = dev_f1
+    # dev_score = train_score
     file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_score, max([dev_score] + dev_score_history)))
     current_dev_metrics = {'f1': dev_f1, 'precision': dev_p, 'recall': dev_r}
 
