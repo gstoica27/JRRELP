@@ -111,14 +111,15 @@ def compute_entity_ner(ners):
             entity_ner = candidate_ner
     return entity_ner
 
-def augment_data(data, sentences, nlp):
+def augment_data(data, nlp):
     new_data = []
-    for sample in data:
+    skip_data = []
+    for idx, sample in enumerate(data):
         # sample id is zero indexed but sentences are 1 indexed
         sample_id = str(int(sample['id']) + 1)
-        sentence = sentences[sample_id]
+        # sentence = sentences[sample_id]
         tokens = sample['token']
-        # sentence = ' '.join(tokens)
+        sentence = ' '.join(tokens)
         token_ners = nlp.ner(sentence)
         # Add NER
         ners = []
@@ -127,7 +128,11 @@ def augment_data(data, sentences, nlp):
                 ners.append(ner)
             else:
                 ners.append('O')
-        assert (len(ners) == len(tokens))
+        # assert (len(ners) == len(tokens))
+        if len(ners) != len(tokens):
+            ners = match_ner_to_tokens(base_tokens=tokens,
+                                       extracted_tokens=nlp.word_tokenize(sentence),
+                                       ners=ners)
         sample['stanford_ner'] = ners
         ss, se = sample['subj_start'], sample['subj_end']
         os, oe = sample['obj_start'], sample['obj_end']
@@ -139,37 +144,70 @@ def augment_data(data, sentences, nlp):
         object_ner = compute_entity_ner(object_ners)
         sample['subj_type'] = subject_ner
         sample['obj_type'] = object_ner
-        new_data.append(sample)
+        if len(ners) > len(tokens):
+            skip_data.append(sample)
+        else:
+            new_data.append(sample)
+        if idx % int(len(data) * .1) == 0:
+            prop_done = idx / len(data)
+            print('Proportion completed: {}'.format(prop_done))
     return new_data
 
-if __name__ == '__main__':
-    stanza.download('en')
-    stanza_nlp = stanza.Pipeline('en')
-    core_nlp = StanfordCoreNLP(r'/Users/georgestoica/Desktop/stanford-corenlp-full-2016-10-31') #stanford-corenlp-4.0.0
 
-    data_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval'
-    # train_file = os.path.join(data_dir, 'train_sampled.json')
-    # test_file = os.path.join(data_dir, 'test.json')
-    # train_data = load_data(train_file)
-    # test_data = load_data(test_file)
+def match_ner_to_tokens(base_tokens, extracted_tokens, ners):
+    matched_ners = []
+    extracted_idx = 0
+    for base_token in base_tokens:
+        extracted_token = extracted_tokens[extracted_idx]
+        ner = ners[extracted_idx]
+        if base_token == extracted_token:
+            extracted_idx += 1
+        else:
+            spread_ners = set()
+            while extracted_token != base_token:
+                spread_ners.add(ners[extracted_idx])
+                extracted_idx += 1
+                extracted_token += extracted_tokens[extracted_idx]
+            extracted_idx += 1
+            ner = None
+            for spread_ner in spread_ners:
+                if ner is None:
+                    ner = spread_ner
+                elif ner == 'O' and spread_ner != 'O':
+                    ner = spread_ner
+        matched_ners.append(ner)
+    return matched_ners
+
+if __name__ == '__main__':
+    # stanza.download('en')
+    # stanza_nlp = stanza.Pipeline('en')
+    core_nlp = StanfordCoreNLP(r'/Users/georgestoica/Desktop/stanford-corenlp-4.0.0') #stanford-corenlp-4.0.0 | stanford-corenlp-full-2016-10-31
+
+    # data_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval'
+    data_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/aggcn_semeval'
+    train_file = os.path.join(data_dir, 'train.json')
+    test_file = os.path.join(data_dir, 'test.json')
+    train_data = load_data(train_file)
+    test_data = load_data(test_file)
+
+    train_data = augment_data(train_data, core_nlp)
+    test_data = augment_data(test_data, core_nlp)
     # mismatch_sentences = []
     # for idx, d in enumerate(train_data):
     #     tokens = d['token']
     #     sentence = stanza_nlp(' '.join(tokens)).sentences[0]
     #     if len(tokens) != len(sentence.words):
     #         mismatch_sentences.append(d)
-    raw_semevel_dir = '/Users/georgestoica/Desktop/SemEval2010_task8_all_data'
-    train_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_training', 'TRAIN_FILE.TXT')
-    test_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_testing_keys', 'TEST_FILE_FULL.TXT')
+    # raw_semevel_dir = '/Users/georgestoica/Desktop/SemEval2010_task8_all_data'
+    # train_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_training', 'TRAIN_FILE.TXT')
+    # test_file = os.path.join(raw_semevel_dir, 'SemEval2010_task8_testing_keys', 'TEST_FILE_FULL.TXT')
     # train_sentences = parse_raw_text(train_file)
     # test_sentences = parse_raw_text(test_file)
 
-    # train_data = augment_data(train_data, train_sentences, nlp)
-    # test_data = augment_data(test_data, test_sentences, nlp)
-    train_data = extract_nlp_components(train_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
+    # train_data = extract_nlp_components(train_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
     train_save_file = os.path.join(data_dir, 'train_sampled.json')
     json.dump(train_data, open(train_save_file, 'w'))
-    test_data = extract_nlp_components(test_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
+    # test_data = extract_nlp_components(test_file, stanza_nlp=stanza_nlp, core_nlp=core_nlp)
     test_save_file = os.path.join(data_dir, 'test_new.json')
     json.dump(test_data, open(test_save_file, 'w'))
 
