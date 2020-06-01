@@ -37,7 +37,10 @@ def add_kg_model_params(cfg_dict, cwd):
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
 dataset = 'semeval'
-config_path = os.path.join(cwd, 'semeval', 'configs', dataset, f'{"nell" if on_server else "local"}_config.yaml')
+config_path = os.path.join(cwd,
+                           'configs',
+                           # dataset,
+                           dataset, f'{"nell" if on_server else "local"}_config.yaml')
 # config_path = os.path.join(cwd, 'configs', 'nell_config.yaml')
 with open(config_path, 'r') as file:
     cfg_dict = yaml.load(file)
@@ -129,7 +132,8 @@ test_metrics_at_best_dev = defaultdict(lambda: -np.inf)
 # start training
 for epoch in range(1, opt['num_epoch']+1):
     train_loss = 0
-    for i, batch in enumerate(train_batch):
+    # for i, batch in enumerate(train_batch):
+    for i in range(0):
         start_time = time.time()
         global_step += 1
         loss = trainer.update(batch)
