@@ -4,11 +4,11 @@ Basic operations on trees.
 
 import numpy as np
 from collections import defaultdict
-from semeval.utils.vocab import Vocab
-
-vocab_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/vocab'
-vocab_file = vocab_dir + '/vocab.pkl'
-vocab = Vocab(vocab_file, load=True)
+# from semeval.utils.vocab import Vocab
+#
+# vocab_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/vocab'
+# vocab_file = vocab_dir + '/vocab.pkl'
+# vocab = Vocab(vocab_file, load=True)
 
 
 class Tree(object):
