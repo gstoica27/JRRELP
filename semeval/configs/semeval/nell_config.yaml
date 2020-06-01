@@ -6,7 +6,7 @@ emb_dim: 300  # Word embedding dimension.
 ner_dim: 30 # NER embedding dimension.
 pos_dim: 30 # POS embedding dimension.
 hidden_dim: 200 # RNN hidden state size.
-num_layers: 2 # Num of RNN layers.
+num_layers: 1 # Num of RNN layers.
 input_dropout: .5 # Input and RNN dropout rate.
 gcn_dropout: .5
 word_dropout: .04 # The rate at which randomly set a word to UNK.
@@ -19,26 +19,27 @@ pooling_l2: 0.003
 mlp_layers: 2
 no_adj: False
 rnn: True
-rnn_hidden: 200
+rnn_hidden: 100
 rnn_layers: 1
 rnn_dropout: 0.5
-lr: 0.3 # Applies to SGD and Adagrad
-lr_decay: 0.9
+lr: 0.5 # Applies to SGD and Adagrad
+lr_decay: 0.95
 decay_epoch: 5
 optim: 'sgd'  # sgd, adagrad, adam or adamax.
-num_epoch: 100 # number of epochs
+num_epoch: 150 # number of epochs
 batch_size: 50
 max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
 log:  'logs.txt'  # Write training log to file.
 save_epoch: 100 # Save model checkpoints every k epochs
-id: 'CGCNConvEPosOnlyLambda.1Seed0RelEmb100'  # Model ID under which to save models.
+id: 'CGCNSemEvalReported'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 1717  # random seed
+seed: 0  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
 model_file:
+mask_mentions: False
 link_prediction:
   #model: 'ConvE'
   #label_smoothing: .1

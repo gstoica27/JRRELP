@@ -21,7 +21,7 @@ class DataLoader(object):
         self.vocab = vocab
         self.eval = evaluation
         self.label2id = constant.LABEL_TO_ID
-
+        self.mask_mentions = opt['mask_mentions']
         if kg_graph is not None:
             self.kg_graph = deepcopy(kg_graph)
         else:
@@ -79,8 +79,9 @@ class DataLoader(object):
             object_type = 'OBJ-'+d['obj_type']
             ss, se = d['subj_start'], d['subj_end']
             os, oe = d['obj_start'], d['obj_end']
-            tokens[ss:se+1] = [subject_type] * (se-ss+1)
-            tokens[os:oe+1] = [object_type] * (oe-os+1)
+            if self.mask_mentions:
+                tokens[ss:se+1] = [subject_type] * (se-ss+1)
+                tokens[os:oe+1] = [object_type] * (oe-os+1)
             tokens = map_to_ids(tokens, vocab.word2id)
             pos = map_to_ids(d['stanford_pos'], constant.POS_TO_ID)
             ner = map_to_ids(d['stanford_ner'], constant.NER_TO_ID)
