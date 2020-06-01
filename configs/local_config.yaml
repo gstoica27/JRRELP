@@ -46,4 +46,5 @@ link_prediction:
   freeze_network: True
   with_relu: True
   without_observed: False
+  without_verification: True
   without_no_relation: False

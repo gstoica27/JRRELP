@@ -115,7 +115,7 @@ class GCNTrainer(Trainer):
             losses['pooling_l2'] = pooling_l2_loss.data.item()
         if self.opt['link_prediction'] is not None:
             observed_loss = suppplemental_losses['observed'] #* (1. - self.opt['link_prediction']['without_observed'])
-            predicted_loss = suppplemental_losses['baseline']
+            predicted_loss = suppplemental_losses['baseline'] * (1. - self.opt['link_prediction']['without_verification'])
             main_loss += (observed_loss + predicted_loss) * self.opt['link_prediction']['lambda']
             observed_loss_value = observed_loss.data.item()
             predicted_loss_value = predicted_loss.data.item()
