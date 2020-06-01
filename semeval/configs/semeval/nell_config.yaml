@@ -1,6 +1,6 @@
-data_dir: '/usr0/home/gis/data/tacred/data/json'
-vocab_dir: '/usr0/home/gis/data/tacred/data/vocab'
-test_save_dir: '/usr0/home/gis/research/tacred-exploration/tacred_test_performances'
+data_dir: '/usr0/home/gis/research/george_gcn/gcn-over-pruned-trees/semeval/dataset/semeval'
+vocab_dir: '/usr0/home/gis/research/george_gcn/gcn-over-pruned-trees/semeval/dataset/semeval/vocab'
+test_save_dir: '/usr0/home/gis/research/tacred-exploration/semeval_test_performances'
 save_dir: '/usr0/home/gis/research/tacred-exploration/saved_models'
 emb_dim: 300  # Word embedding dimension.
 ner_dim: 30 # NER embedding dimension.
@@ -40,10 +40,10 @@ cpu: False # Ignore CUDA.
 load: False
 model_file:
 link_prediction:
-  model: 'ConvE'
-  label_smoothing: .1
-  lambda: .1
-  freeze_network: False
-  with_relu: True
+  #model: 'ConvE'
+  #label_smoothing: .1
+  #lambda: .1
+  #freeze_network: False
+  #with_relu: True
 #  without_observed: False
-  without_no_relation: True
+  #without_no_relation: True
