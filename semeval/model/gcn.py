@@ -8,9 +8,9 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 
-from semeval.model.tree import Tree, head_to_tree, tree_to_adj
-from semeval.utils import constant, torch_utils
-from semeval.model.link_prediction_models import *
+from model.tree import Tree, head_to_tree, tree_to_adj
+from utils import constant, torch_utils
+from model.link_prediction_models import *
 
 def initialize_link_prediction_model(params):
     name = params['name'].lower()

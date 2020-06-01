@@ -17,10 +17,10 @@ import torch.optim as optim
 from torch.autograd import Variable
 from collections import defaultdict
 
-from semeval.data.loader import DataLoader
-from semeval.model.trainer import GCNTrainer
-from semeval.utils import torch_utils, scorer, constant, helper
-from semeval.utils.vocab import Vocab
+from data.loader import DataLoader
+from model.trainer import GCNTrainer
+from utils import torch_utils, scorer, constant, helper
+from utils.vocab import Vocab
 import yaml
 
 
@@ -38,7 +38,7 @@ cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
 dataset = 'semeval'
 config_path = os.path.join(cwd,
-                           dataset,
+                           # dataset,
                            'configs',
                            dataset, f'{"nell" if on_server else "local"}_config.yaml')
 # config_path = os.path.join(cwd, 'configs', 'nell_config.yaml')

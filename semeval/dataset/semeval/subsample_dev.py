@@ -55,14 +55,14 @@ def sample_by_triple(data, sample_prop=.1):
         # triples_left -= 1
         # samp
 if __name__ == '__main__':
-    semeval_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval'
-    train_file = os.path.join(semeval_dir, 'train.json')
+    semeval_dir = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/aggcn_semeval'
+    train_file = os.path.join(semeval_dir, 'train_new.json')
     train_data = load_data(train_file)
     # This gives you exactly an 800 split
     sample_amount = .1006
     triple2data = group_by_triple(train_data)
     train_set, dev_set = sample_by_triple(triple2data, sample_prop=sample_amount)
-    train_save_file = os.path.join(semeval_dir, 'train_sampled.json')
+    train_save_file = os.path.join(semeval_dir, 'train_sampled_new.json')
     json.dump(train_set, open(train_save_file, 'w'))
     dev_save_file = os.path.join(semeval_dir, 'dev.json')
     json.dump(dev_set, open(dev_save_file, 'w'))

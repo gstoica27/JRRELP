@@ -8,7 +8,7 @@ import random
 import numpy as np
 import pickle
 
-from semeval.utils import constant
+from utils import constant
 
 random.seed(1234)
 np.random.seed(1234)

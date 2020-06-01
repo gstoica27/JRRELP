@@ -29,8 +29,8 @@ if __name__ == '__main__':
     pos2id = {PAD_TOKEN: 0, UNK_TOKEN: 1}
     deprel2id = {PAD_TOKEN: 0, UNK_TOKEN: 1}
 
-    cwd = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval'
-    files = [os.path.join(cwd, name) for name in ['train_sampled.json', 'dev.json', 'test.json']]
+    cwd = '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/aggcn_semeval'
+    files = [os.path.join(cwd, name) for name in ['train_sampled_new.json', 'dev.json', 'test_new.json']]
     all_data = []
     for file in files:
         data = json.load(open(file, 'r'))

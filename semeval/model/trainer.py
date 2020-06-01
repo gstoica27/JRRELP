@@ -8,8 +8,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 
-from semeval.model.gcn import GCNClassifier
-from semeval.utils import constant, torch_utils
+from model.gcn import GCNClassifier
+from utils import constant, torch_utils
 from collections import defaultdict
 
 class Trainer(object):

@@ -1,4 +1,4 @@
-data_dir: '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval'
+data_dir: '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/aggcn_semeval'
 vocab_dir: '/Users/georgestoica/Desktop/icloud_desktop/Research/gcn-over-pruned-trees/semeval/dataset/semeval/vocab'
 test_save_dir: '/Volumes/External HDD/dataset/semeval/test_perfs'
 save_dir: '/Volumes/External HDD/dataset/semeval/saved_models'
@@ -27,7 +27,7 @@ lr_decay: 0.95
 decay_epoch: 0.9
 optim: 'sgd'  # sgd, adagrad, adam or adamax.
 num_epoch: 150 # number of epochs
-batch_size: 200
+batch_size: 50
 max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 1  # Print log every k steps.
 log:  'logs.txt'  # Write training log to file.
@@ -41,10 +41,10 @@ load: False
 mask_mentions: False
 model_file:
 link_prediction:
-  model: 'ConvE'
-  label_smoothing: .1
-  lambda: 1.
-  freeze_network: True
-  with_relu: True
-  without_observed: False
-  without_no_relation: False
+#  model: 'ConvE'
+#  label_smoothing: .1
+#  lambda: 1.
+#  freeze_network: True
+#  with_relu: True
+#  without_observed: False
+#  without_no_relation: False
