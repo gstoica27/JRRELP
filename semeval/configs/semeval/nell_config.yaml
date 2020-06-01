@@ -22,7 +22,7 @@ rnn: True
 rnn_hidden: 100
 rnn_layers: 1
 rnn_dropout: 0.5
-lr: 0.5 # Applies to SGD and Adagrad
+lr: 0.3 # Applies to SGD and Adagrad
 lr_decay: 0.95
 decay_epoch: 5
 optim: 'sgd'  # sgd, adagrad, adam or adamax.
@@ -32,19 +32,19 @@ max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
 log:  'logs.txt'  # Write training log to file.
 save_epoch: 100 # Save model checkpoints every k epochs
-id: 'CGCNSemEvalReportedSeed101'  # Model ID under which to save models.
+id: 'CGCNSemEvalReportedConvELr.3'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 101  # random seed
+seed: 0  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
 model_file:
 mask_mentions: True
 link_prediction:
-#  model: 'ConvE'
-#  label_smoothing: .1
-#  lambda: .1
-#  freeze_network: False
-#  with_relu: True
-##  without_observed: False
-#  without_no_relation: True
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: .1
+  freeze_network: False
+  with_relu: True
+#  without_observed: False
+  without_no_relation: True
