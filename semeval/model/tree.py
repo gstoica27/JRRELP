@@ -57,7 +57,7 @@ def head_to_tree(head, tokens, len_, prune, subj_pos, obj_pos):
     """
     Convert a sequence of head indexes into a tree object.
     """
-    word_tokens = [vocab.id2word[t] for t in tokens[:len_]]
+    # word_tokens = [vocab.id2word[t] for t in tokens[:len_]]
     tokens = tokens[:len_].tolist()
     head = head[:len_].tolist()
     root = None
