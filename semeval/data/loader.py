@@ -157,7 +157,7 @@ class DataLoader(object):
         return {'base': tensor_batch, 'sentence_lengths': lens}
 
     def ready_kg_batch(self, kg_batch, sentence_lengths):
-        num_objects = len(self.kg_graph['objects'])
+        num_objects = len(constant.OBJ_NER_TO_ID) - 2
         batch = list(zip(*kg_batch))
         batch, _ = sort_all(batch, sentence_lengths)
         subjects, relations, known_objects = batch

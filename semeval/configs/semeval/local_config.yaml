@@ -41,10 +41,10 @@ load: False
 mask_mentions: False
 model_file:
 link_prediction:
-#  model: 'ConvE'
-#  label_smoothing: .1
-#  lambda: 1.
-#  freeze_network: True
-#  with_relu: True
-#  without_observed: False
-#  without_no_relation: False
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: 1.
+  freeze_network: True
+  with_relu: True
+  without_observed: False
+  without_no_relation: False
