@@ -45,6 +45,6 @@ link_prediction:
   lambda: .1
   freeze_network: False
   with_relu: True
-#  without_observed: False
-  without_verification: True
+  without_observed: True
+  without_verification: False
   without_no_relation: True

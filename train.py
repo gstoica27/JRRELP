@@ -24,6 +24,38 @@ from utils.vocab import Vocab
 import yaml
 
 
+def create_model_name(cfg_dict):
+    top_level_name = 'SemEval'
+    approach_type = 'CGCN-JRRELP' if cfg_dict['link_prediction'] is not None else 'CGCN'
+    main_name = '{}-{}-{}-{}'.format(
+        cfg_dict['optim'], cfg_dict['lr'], cfg_dict['lr_decay'],
+        cfg_dict['seed']
+    )
+    if cfg_dict['link_prediction'] is not None:
+        kglp_task_cfg = cfg_dict['link_prediction']
+        kglp_task = '{}-{}-{}-{}-{}-{}-{}'.format(
+            kglp_task_cfg['label_smoothing'],
+            kglp_task_cfg['lambda'],
+            kglp_task_cfg['freeze_network'],
+            kglp_task_cfg['with_relu'],
+            kglp_task_cfg['without_observed'],
+            kglp_task_cfg['without_verification'],
+            kglp_task_cfg['without_no_relation']
+        )
+        lp_cfg = cfg_dict['link_prediction']['model']
+        kglp_name = '{}-{}-{}-{}-{}-{}-{}'.format(
+            lp_cfg['input_drop'], lp_cfg['hidden_drop'],
+            lp_cfg['feat_drop'], lp_cfg['rel_emb_dim'],
+            lp_cfg['use_bias'], lp_cfg['filter_channels'],
+            lp_cfg['stride']
+        )
+
+        aggregate_name = os.path.join(top_level_name, approach_type, main_name, kglp_task, kglp_name)
+    else:
+        aggregate_name = os.path.join(top_level_name, approach_type, main_name)
+    return aggregate_name
+
+
 def add_kg_model_params(cfg_dict, cwd):
     link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
     with open(link_prediction_cfg_file, 'r') as handle:
@@ -76,7 +108,8 @@ dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vo
 test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True,
                         kg_graph=dev_batch.kg_graph)
 
-model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
+# model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
+model_id = create_model_name(opt)
 model_save_dir = opt['save_dir'] + '/' + model_id
 opt['model_save_dir'] = model_save_dir
 helper.ensure_dir(model_save_dir, verbose=True)
