@@ -34,7 +34,7 @@ log:  'logs.txt'  # Write training log to file.
 save_epoch: 100 # Save model checkpoints every k epochs
 id: 'CGCNConvEPosOnlyLambda.1Seed0RelEmb100NoVer'  # Model ID under which to save models.
 info: ''  # Optional info for the experiment.
-seed: 0  # random seed
+seed: 1  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
