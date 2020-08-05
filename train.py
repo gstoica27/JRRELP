@@ -25,7 +25,7 @@ import yaml
 
 
 def create_model_name(cfg_dict):
-    top_level_name = 'SemEval'
+    top_level_name = 'TACRED'
     approach_type = 'CGCN-JRRELP' if cfg_dict['link_prediction'] is not None else 'CGCN'
     main_name = '{}-{}-{}-{}'.format(
         cfg_dict['optim'], cfg_dict['lr'], cfg_dict['lr_decay'],
@@ -108,8 +108,16 @@ dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vo
 test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True,
                         kg_graph=dev_batch.kg_graph)
 
+if opt['link_prediction'] is not None:
+    opt['link_prediction']['model'] = add_kg_model_params(cfg_dict, cwd)
+    opt['num_relations'] = len(constant.LABEL_TO_ID)
+    opt['num_subjects'] = len(constant.SUBJ_NER_TO_ID) - 2
+    opt['num_objects'] = len(constant.OBJ_NER_TO_ID) - 2
+    opt['link_prediction']['model']['num_objects'] = cfg_dict['num_objects']
+
 # model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
 model_id = create_model_name(opt)
+
 model_save_dir = opt['save_dir'] + '/' + model_id
 opt['model_save_dir'] = model_save_dir
 helper.ensure_dir(model_save_dir, verbose=True)
@@ -124,13 +132,6 @@ os.makedirs(test_save_dir, exist_ok=True)
 test_save_file = os.path.join(test_save_dir, 'test_records.pkl')
 test_confusion_save_file = os.path.join(test_save_dir, 'test_confusion_matrix.pkl')
 dev_confusion_save_file = os.path.join(test_save_dir, 'dev_confusion_matrix.pkl')
-
-if cfg_dict['link_prediction'] is not None:
-    cfg_dict['link_prediction']['model'] = add_kg_model_params(cfg_dict, cwd)
-    cfg_dict['num_relations'] = len(test_batch.kg_graph['relations'])
-    cfg_dict['num_subjects'] = len(test_batch.kg_graph['subjects'])
-    cfg_dict['num_objects'] = len(test_batch.kg_graph['objects'])
-    cfg_dict['link_prediction']['model']['num_objects'] = cfg_dict['num_objects']
 
 # print model info
 helper.print_config(opt)
