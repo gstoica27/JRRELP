@@ -114,6 +114,7 @@ class GCNTrainer(Trainer):
             main_loss += pooling_l2_loss
             losses['pooling_l2'] = pooling_l2_loss.data.item()
         if self.opt['link_prediction'] is not None:
+            label_smoothing = self.opt['link_prediction']['label_smoothing']
             observed_loss = suppplemental_losses['observed'] * (1. - self.opt['link_prediction']['without_observed'])
             predicted_loss = suppplemental_losses['baseline'] * (1. - self.opt['link_prediction']['without_verification'])
             main_loss += (observed_loss + predicted_loss) * self.opt['link_prediction']['lambda']

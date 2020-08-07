@@ -130,6 +130,8 @@ class GCNRelationModel(nn.Module):
 
         if self.opt['link_prediction'] is not None:
             subjects, relations, known_objects = inputs['kg']
+            label_smoothing = self.opt['link_prediction']['label_smoothing']
+            smoothed_known_objects = ((1.0 - label_smoothing) * known_objects) + (1.0 / known_objects.size(1))
             object_embs = self.emb(self.object_indices)
             subject_embs = self.emb(subjects)
             relation_embs = self.rel_emb(relations)
@@ -143,8 +145,8 @@ class GCNRelationModel(nn.Module):
                 #  Wherein the relation embeddings are updated at a completely different pace than the rest of the network.
                 #  (e.g. batch numbers are different every time)
                 no_relation_blacklist = torch.eq(relations, constant.NO_RELATION_ID).eq(0).type(torch.float32).unsqueeze(-1)
-                observed_loss = self.lp_model.loss(observed_preds, known_objects)
-                baseline_loss = self.lp_model.loss(baseline_preds, known_objects)
+                observed_loss = self.lp_model.loss(observed_preds, smoothed_known_objects)
+                baseline_loss = self.lp_model.loss(baseline_preds, smoothed_known_objects)
                 observed_loss = observed_loss * no_relation_blacklist
                 baseline_loss = baseline_loss * no_relation_blacklist
                 # Mean over column dimension
@@ -156,8 +158,8 @@ class GCNRelationModel(nn.Module):
                 observed_loss = observed_loss.sum() / num_positives
                 baseline_loss = baseline_loss.sum() / num_positives
             else:
-                observed_loss = self.lp_model.loss(observed_preds, known_objects).mean()
-                baseline_loss = self.lp_model.loss(baseline_preds, known_objects).mean()
+                observed_loss = self.lp_model.loss(observed_preds, smoothed_known_objects).mean()
+                baseline_loss = self.lp_model.loss(baseline_preds, smoothed_known_objects).mean()
 
             supplemental_losses = {'observed': observed_loss, 'baseline': baseline_loss}
             # Relation extraction loss
