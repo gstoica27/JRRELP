@@ -41,11 +41,11 @@ load: False
 type_substitute: False
 model_file:
 link_prediction:
-#  model: 'ConvE'
-#  label_smoothing: .1
-#  lambda: .1
-#  freeze_network: False
-#  with_relu: True
-#  without_observed: True
-#  without_verification: False
-#  without_no_relation: True
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: .1
+  freeze_network: False
+  with_relu: True
+  without_observed: False
+  without_verification: False
+  without_no_relation: False
