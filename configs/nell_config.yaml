@@ -38,6 +38,7 @@ seed: 0  # random seed
 cuda: True
 cpu: False # Ignore CUDA.
 load: False
+type_substitute: False
 model_file:
 link_prediction:
 #  model: 'ConvE'
