@@ -25,7 +25,7 @@ import yaml
 
 
 def create_model_name(cfg_dict):
-    top_level_name = 'TACRED'
+    top_level_name = 'TACRED-KBP'
     approach_type = 'CGCN-JRRELP' if cfg_dict['link_prediction'] is not None else 'CGCN'
     main_name = '{}-{}-{}-{}'.format(
         cfg_dict['optim'], cfg_dict['lr'], cfg_dict['lr_decay'],
@@ -103,9 +103,9 @@ opt['object_indices'] = vocab.obj_idxs
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
 train_batch = DataLoader(opt['data_dir'] + '/train.json', opt['batch_size'], opt, vocab, evaluation=False)
-dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True,
+dev_batch = DataLoader(opt['data_dir'] + '/kg_dev_reduced.json', opt['batch_size'], opt, vocab, evaluation=True,
                        kg_graph=train_batch.kg_graph)
-test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True,
+test_batch = DataLoader(opt['data_dir'] + '/kg_test_reduced.json', opt['batch_size'], opt, vocab, evaluation=True,
                         kg_graph=dev_batch.kg_graph)
 
 if opt['link_prediction'] is not None:
