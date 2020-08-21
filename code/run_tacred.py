@@ -22,6 +22,7 @@ from pytorch_pretrained_bert.file_utils import PYTORCH_PRETRAINED_BERT_CACHE, WE
 from pytorch_pretrained_bert.modeling import BertForSequenceClassification
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 from pytorch_pretrained_bert.optimization import BertAdam, warmup_linear
+from link_prediction_models import ConvE
 
 CLS = "[CLS]"
 SEP = "[SEP]"
@@ -256,8 +257,12 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
         for feature in features:
             feature_subject = feature.subject_id
             feature_label = feature.label_id
-            known_objects = list(kg[(feature_subject, feature_label)])
-
+            known_object_ids = list(kg[(feature_subject, feature_label)])
+            if feature_label == label2id['no_relation']:
+                known_objects = np.ones(len(object_indices), dtype=np.float32)
+            else:
+                known_objects = np.zeros(len(object_indices), dtype=np.float32)
+                known_objects[known_object_ids] = 1.
             feature.known_objects = known_objects
 
     logger.info("Average #tokens: %.2f" % (num_tokens * 1.0 / len(examples)))
@@ -374,8 +379,6 @@ def main(args):
     processor = DataProcessor()
     label_list = processor.get_labels(args.data_dir, args.negative_label)
     label2id = {label: i for i, label in enumerate(label_list)}
-    print(label2id)
-    exit()
     id2label = {i: label for i, label in enumerate(label_list)}
     num_labels = len(label_list)
     tokenizer = BertTokenizer.from_pretrained(args.model, do_lower_case=args.do_lower_case)
@@ -405,13 +408,20 @@ def main(args):
             train_features = sorted(train_features, key=lambda f: np.sum(f.input_mask))
         else:
             random.shuffle(train_features)
-
+        # SpanBERT Items
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
         all_label_ids = torch.tensor([f.label_id for f in train_features], dtype=torch.long)
-
-        train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+        # JRRELP Items
+        all_known_objects = torch.tensor([f.known_objects for f in train_features], dtype=torch.float32)
+        all_known_subjects = torch.tensor([f.subject_id for f in train_features], dtype=torch.long)
+        train_data = TensorDataset(
+            # SpanBERT Items
+            all_input_ids, all_input_mask, all_segment_ids, all_label_ids,
+            # JRRELP Items
+            all_known_objects, all_known_subjects
+        )
         train_dataloader = DataLoader(train_data, batch_size=args.train_batch_size)
         train_batches = [batch for batch in train_dataloader]
 
@@ -479,7 +489,7 @@ def main(args):
                     random.shuffle(train_batches)
                 for step, batch in enumerate(train_batches):
                     batch = tuple(t.to(device) for t in batch)
-                    input_ids, input_mask, segment_ids, label_ids = batch
+                    input_ids, input_mask, segment_ids, label_ids, known_objects, subject_ids = batch
                     loss, pred_rels = model(input_ids, segment_ids, input_mask, label_ids)
                     if n_gpu > 1:
                         loss = loss.mean()
