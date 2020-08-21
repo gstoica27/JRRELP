@@ -113,10 +113,40 @@ class DataProcessor(object):
         return examples
 
 
+
 def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, special_tokens, mode='text'):
     """Loads a data file into a list of `InputBatch`s."""
+    special_tokens = {
+        'SUBJ=ORGANIZATION': '[unused1]',
+        'SUBJ=PERSON': '[unused2]',
+        'OBJ=PERSON': '[unused3]',
+        'OBJ=ORGANIZATION': '[unused4]',
+        'OBJ=DATE': '[unused5]',
+        'OBJ=NUMBER': '[unused6]',
+        'OBJ=TITLE': '[unused7]',
+        'OBJ=COUNTRY': '[unused8]',
+        'OBJ=LOCATION': '[unused9]',
+        'OBJ=CITY': '[unused10]',
+        'OBJ=MISC': '[unused11]',
+        'OBJ=STATE_OR_PROVINCE': '[unused12]',
+        'OBJ=DURATION': '[unused13]',
+        'OBJ=NATIONALITY': '[unused14]',
+        'OBJ=CAUSE_OF_DEATH': '[unused15]',
+        'OBJ=CRIMINAL_CHARGE': '[unused16]',
+        'OBJ=RELIGION': '[unused17]',
+        'OBJ=URL': '[unused18]',
+        'OBJ=IDEOLOGY': '[unused19]'
 
-
+    }
+    object_bert_ner = []
+    for special_token in special_tokens:
+        if 'OBJ=' in special_token:
+            object_bert_ner.append(special_token)
+    object_indices = tokenizer.convert_tokens_to_ids(object_bert_ner)
+    print('OBJECT NER VOCAB INDICES: {}'.format(object_indices))
+    exit()
+    kg = {}
+    object_indices = []
     def get_special_token(w):
         if w not in special_tokens:
             special_tokens[w] = "[unused%d]" % (len(special_tokens) + 1)
@@ -137,6 +167,11 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
         OBJECT_END = get_special_token("OBJ_END")
         SUBJECT_NER = get_special_token("SUBJ=%s" % example.ner1)
         OBJECT_NER = get_special_token("OBJ=%s" % example.ner2)
+
+        e1rel = (SUBJECT_NER, example.label)
+        if e1rel not in kg:
+            kg[e1rel] = set()
+        kg[e1rel].add(OBJECT_NER)
 
         if mode.startswith("text"):
             for i, token in enumerate(example.sentence):
@@ -274,7 +309,7 @@ def evaluate(model, device, eval_dataloader, eval_label_ids, num_labels, verbose
         segment_ids = segment_ids.to(device)
         label_ids = label_ids.to(device)
         with torch.no_grad():
-            logits = model(input_ids, segment_ids, input_mask, labels=None)
+            logits, _ = model(input_ids, segment_ids, input_mask, labels=None)
         loss_fct = CrossEntropyLoss()
         tmp_eval_loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
         eval_loss += tmp_eval_loss.mean().item()
@@ -431,7 +466,7 @@ def main(args):
                 for step, batch in enumerate(train_batches):
                     batch = tuple(t.to(device) for t in batch)
                     input_ids, input_mask, segment_ids, label_ids = batch
-                    loss = model(input_ids, segment_ids, input_mask, label_ids)
+                    loss, pred_rels = model(input_ids, segment_ids, input_mask, label_ids)
                     if n_gpu > 1:
                         loss = loss.mean()
                     if args.gradient_accumulation_steps > 1:

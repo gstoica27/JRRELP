@@ -993,9 +993,9 @@ class BertForSequenceClassification(BertPreTrainedModel):
         if labels is not None:
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-            return loss
+            return loss, pooled_output
         else:
-            return logits
+            return logits, pooled_output
 
 
 class BertForMultipleChoice(BertPreTrainedModel):
