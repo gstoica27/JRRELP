@@ -253,17 +253,17 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
                               label_id=label_id,
                               subject_id=subject_id
                               ))
-        # Add KG outputs to features
-        for feature in tqdm(features):
-            feature_subject = feature.subject_id
-            feature_label = feature.label_id
-            known_object_ids = list(kg[(feature_subject, feature_label)])
-            if feature_label == label2id['no_relation']:
-                known_objects = np.ones(len(object_indices), dtype=np.float32)
-            else:
-                known_objects = np.zeros(len(object_indices), dtype=np.float32)
-                known_objects[known_object_ids] = 1.
-            feature.known_objects = known_objects
+    # Add KG outputs to features
+    for feature in tqdm(features):
+        feature_subject = feature.subject_id
+        feature_label = feature.label_id
+        known_object_ids = list(kg[(feature_subject, feature_label)])
+        if feature_label == label2id['no_relation']:
+            known_objects = np.ones(len(object_indices), dtype=np.float32)
+        else:
+            known_objects = np.zeros(len(object_indices), dtype=np.float32)
+            known_objects[known_object_ids] = 1.
+        feature.known_objects = known_objects
 
     logger.info("Average #tokens: %.2f" % (num_tokens * 1.0 / len(examples)))
     logger.info("%d (%.2f %%) examples can fit max_seq_length = %d" % (num_fit_examples,
