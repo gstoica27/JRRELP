@@ -15,7 +15,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from collections import Counter
-
+from tqdm import tqdm
 from torch.nn import CrossEntropyLoss
 
 from pytorch_pretrained_bert.file_utils import PYTORCH_PRETRAINED_BERT_CACHE, WEIGHTS_NAME, CONFIG_NAME
@@ -254,7 +254,7 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
                               subject_id=subject_id
                               ))
         # Add KG outputs to features
-        for feature in features:
+        for feature in tqdm(features):
             feature_subject = feature.subject_id
             feature_label = feature.label_id
             known_object_ids = list(kg[(feature_subject, feature_label)])
