@@ -144,7 +144,7 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
             object_bert_ner.append(bert_token)
     object_indices = tokenizer.convert_tokens_to_ids(object_bert_ner)
     maps = []
-    for (special_token, bert_token), index in zip(special_tokens.items(), object_indices):
+    for (special_token, bert_token), index in zip([i for i in list(special_tokens.items()) if 'OBJ=' in i[0]], object_indices):
         maps.append((special_token, bert_token, index))
     print('OBJECT NER VOCAB INDICES: {}'.format(maps))
     exit()
