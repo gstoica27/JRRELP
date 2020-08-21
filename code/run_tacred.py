@@ -45,15 +45,19 @@ class InputExample(object):
         self.label = label
 
 
+# class InputFeatures(object):
+#     """A single set of features of data."""
+#
+#     def __init__(self, input_ids, input_mask, segment_ids, label_id):
+#         self.input_ids = input_ids
+#         self.input_mask = input_mask
+#         self.segment_ids = segment_ids
+#         self.label_id = label_id
+
 class InputFeatures(object):
     """A single set of features of data."""
-
-    def __init__(self, input_ids, input_mask, segment_ids, label_id):
-        self.input_ids = input_ids
-        self.input_mask = input_mask
-        self.segment_ids = segment_ids
-        self.label_id = label_id
-
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 class DataProcessor(object):
     """Processor for the TACRED data set."""
@@ -138,18 +142,9 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
         'OBJ=IDEOLOGY': '[unused19]'
 
     }
-    object_bert_ner = []
-    for special_token, bert_token in special_tokens.items():
-        if 'OBJ=' in special_token:
-            object_bert_ner.append(bert_token)
-    object_indices = tokenizer.convert_tokens_to_ids(object_bert_ner)
-    maps = []
-    for (special_token, bert_token), index in zip([i for i in list(special_tokens.items()) if 'OBJ=' in i[0]], object_indices):
-        maps.append((special_token, bert_token, index))
-    print('OBJECT NER VOCAB INDICES: {}'.format(maps))
-    exit()
+    object_indices = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     kg = {}
-    object_indices = []
+    object_offset = 3
     def get_special_token(w):
         if w not in special_tokens:
             special_tokens[w] = "[unused%d]" % (len(special_tokens) + 1)
@@ -170,11 +165,13 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
         OBJECT_END = get_special_token("OBJ_END")
         SUBJECT_NER = get_special_token("SUBJ=%s" % example.ner1)
         OBJECT_NER = get_special_token("OBJ=%s" % example.ner2)
-
-        e1rel = (SUBJECT_NER, example.label)
+        subject_id, object_id = tokenizer.convert_tokens_to_ids([SUBJECT_NER, OBJECT_NER])
+        relation_id = label2id[example.label]
+        e1rel = (subject_id, relation_id)
         if e1rel not in kg:
             kg[e1rel] = set()
-        kg[e1rel].add(OBJECT_NER)
+        # Subtract offset so that the JRRELP loss labels are indexed correctly
+        kg[e1rel].add(object_id - object_offset)
 
         if mode.startswith("text"):
             for i, token in enumerate(example.sentence):
@@ -252,7 +249,17 @@ def convert_examples_to_features(examples, label2id, max_seq_length, tokenizer, 
                 InputFeatures(input_ids=input_ids,
                               input_mask=input_mask,
                               segment_ids=segment_ids,
-                              label_id=label_id))
+                              label_id=label_id,
+                              subject_id=subject_id
+                              ))
+        # Add KG outputs to features
+        for feature in features:
+            feature_subject = feature.subject_id
+            feature_label = feature.label_id
+            known_objects = list(kg[(feature_subject, feature_label)])
+
+            feature.known_objects = known_objects
+
     logger.info("Average #tokens: %.2f" % (num_tokens * 1.0 / len(examples)))
     logger.info("%d (%.2f %%) examples can fit max_seq_length = %d" % (num_fit_examples,
                 num_fit_examples * 100.0 / len(examples), max_seq_length))
@@ -336,6 +343,7 @@ def evaluate(model, device, eval_dataloader, eval_label_ids, num_labels, verbose
 
 
 def main(args):
+    object_indices = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     device = torch.device("cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
     n_gpu = torch.cuda.device_count()
 
@@ -365,6 +373,8 @@ def main(args):
 
     processor = DataProcessor()
     label_list = processor.get_labels(args.data_dir, args.negative_label)
+    print(label_list)
+    exit()
     label2id = {label: i for i, label in enumerate(label_list)}
     id2label = {i: label for i, label in enumerate(label_list)}
     num_labels = len(label_list)
@@ -400,6 +410,7 @@ def main(args):
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
         all_label_ids = torch.tensor([f.label_id for f in train_features], dtype=torch.long)
+
         train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
         train_dataloader = DataLoader(train_data, batch_size=args.train_batch_size)
         train_batches = [batch for batch in train_dataloader]
