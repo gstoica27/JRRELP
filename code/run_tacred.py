@@ -440,6 +440,8 @@ def main(args):
         for lr in lrs:
             model = BertForSequenceClassification.from_pretrained(
                 args.model, cache_dir=str(PYTORCH_PRETRAINED_BERT_CACHE), num_labels=num_labels)
+            print('LABEL/TOKEN NER SIZE: {}'.format(model.config.hidden_size))
+            exit()
             if args.fp16:
                 model.half()
             model.to(device)
