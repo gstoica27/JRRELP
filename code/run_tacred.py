@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from collections import Counter
 from tqdm import tqdm
 from torch.nn import CrossEntropyLoss
-
+import torch.nn.functional as F
 from pytorch_pretrained_bert.file_utils import PYTORCH_PRETRAINED_BERT_CACHE, WEIGHTS_NAME, CONFIG_NAME
 from pytorch_pretrained_bert.modeling import BertForSequenceClassification
 from pytorch_pretrained_bert.tokenization import BertTokenizer
@@ -348,7 +348,6 @@ def evaluate(model, device, eval_dataloader, eval_label_ids, num_labels, verbose
 
 
 def main(args):
-    object_indices = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     device = torch.device("cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
     n_gpu = torch.cuda.device_count()
 
@@ -375,7 +374,8 @@ def main(args):
     logger.info(args)
     logger.info("device: {}, n_gpu: {}, 16-bits training: {}".format(
         device, n_gpu, args.fp16))
-
+    object_indices = torch.tensor([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], dtype=torch.long).to(
+        device)
     processor = DataProcessor()
     label_list = processor.get_labels(args.data_dir, args.negative_label)
     label2id = {label: i for i, label in enumerate(label_list)}
@@ -456,6 +456,24 @@ def main(args):
                 {'params': [p for n, p in param_optimizer
                             if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
+            if args.with_jrrelp:
+                # TODO: This is hardcoded. move it to config file
+                kglp_config = {
+                    'input_drop': 0.5,
+                    'hidden_drop': 0.5,
+                    'feat_drop': 0.5,
+                    'ent_emb_dim': 1024,
+                    'ent_emb_shape1': 8,
+                    'rel_emb_dim': 1024,
+                    'rel_emb_shape1': 8,
+                    'use_bias': True,
+                    'kernel_size': (3, 3),
+                    'filter_channels': 32,
+                    'stride': 1,
+                    'padding': 0,
+                }
+                kglp_model = ConvE(kglp_config)
+                kglp_model.to(device)
             if args.fp16:
                 try:
                     from apex.optimizers import FP16_Optimizer
@@ -495,6 +513,23 @@ def main(args):
                     loss, pred_rels = model(input_ids, segment_ids, input_mask, label_ids)
                     if n_gpu > 1:
                         loss = loss.mean()
+
+                    if args.with_jrrelp:
+                        # Get Input Embeddings
+                        # Relation Embeddings come from SpanBERT output later
+                        label_embs = F.embedding(label_ids, model.classifier.weight)
+                        # Subject/Object Embeddings come from SpanBERT input layer
+                        subject_embs = model.bert.embeddings.word_embeddings(subject_ids)
+                        object_embs = model.bert.embeddings.word_embeddings(object_indices)
+                        # Get KGLP model object logits
+                        standard_logits = kglp_model(subject_embs, label_embs, object_embs)
+                        cyclic_logits = kglp_model(subject_embs, pred_rels, object_embs)
+                        # Compute JRRELP auxiliary loss terms
+                        standard_loss = kglp_model.loss(standard_logits, known_objects)
+                        cyclic_loss = kglp_model.loss(cyclic_logits, known_objects)
+                        # Aggregate loss with JRRELP weight
+                        loss += args.jrrelp_lambda * (standard_loss + cyclic_loss)
+
                     if args.gradient_accumulation_steps > 1:
                         loss = loss / args.gradient_accumulation_steps
 
@@ -583,6 +618,9 @@ def main(args):
 
 
 if __name__ == "__main__":
+    def str2bool(v):
+        return v.lower() in ('true')
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default=None, type=str, required=True)
     parser.add_argument("--data_dir", default=None, type=str, required=True,
@@ -626,5 +664,9 @@ if __name__ == "__main__":
                         help="Loss scaling to improve fp16 numeric stability. Only used when fp16 set to True.\n"
                              "0 (default value): dynamic loss scaling.\n"
                              "Positive power of 2: static loss scaling value.\n")
+    parser.add_argument('--with_jrrelp', type=str2bool, default=False,
+                        help='Whether to include JRRELP')
+    parser.add_argument('--jrrelp_lambda', type=float, default=.1,
+                        help='JRRELP lambda term for loss wieght')
     args = parser.parse_args()
     main(args)
