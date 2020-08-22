@@ -465,7 +465,7 @@ def main(args):
                     'rel_emb_dim': 1024,
                     'rel_emb_shape1': 8,
                     'use_bias': True,
-                    'kernel_size': (3, 3),
+                    'kernel_size': '(3, 3)',
                     'filter_channels': 32,
                     'stride': 1,
                     'padding': 0,
