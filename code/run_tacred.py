@@ -469,6 +469,7 @@ def main(args):
                     'filter_channels': 32,
                     'stride': 1,
                     'padding': 0,
+                    'num_objects': len(object_indices.cpu().numpy().tolist()),
                 }
                 kglp_model = ConvE(kglp_config)
                 kglp_model.to(device)
