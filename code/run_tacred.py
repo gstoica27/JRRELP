@@ -528,6 +528,7 @@ def main(args):
                         standard_logits = kglp_model(subject_embs, label_embs, object_embs)
                         cyclic_logits = kglp_model(subject_embs, pred_rels, object_embs)
                         # Compute JRRELP auxiliary loss terms
+                        print('STANDARD LOGITS: {} | KNOWN OBJECTS: {}'.format(standard_logits.type(), known_objects.type()))
                         standard_loss = kglp_model.loss(standard_logits, known_objects)
                         cyclic_loss = kglp_model.loss(cyclic_logits, known_objects)
                         # Aggregate loss with JRRELP weight
