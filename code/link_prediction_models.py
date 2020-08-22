@@ -106,7 +106,7 @@ class ConvE(torch.nn.Module):
         self.register_parameter('b', Parameter(torch.zeros((args['num_objects']))))
         self.fc = torch.nn.Linear(output_size,args['ent_emb_dim'])
         # load model if exists
-        if args['load_path'] is not None:
+        if args.get('load_path', None) is not None:
             self.load_model(args['load_path'], freeze_network=args['freeze_network'])
             self.is_pretrained = True
         else:
