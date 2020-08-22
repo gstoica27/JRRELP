@@ -517,7 +517,7 @@ def main(args):
 
                     if args.with_jrrelp:
                         if args.fp16:
-                            known_objects.half()
+                            known_objects = known_objects.half()
                         # Get Input Embeddings
                         # Relation Embeddings come from SpanBERT output later
                         label_embs = F.embedding(label_ids, model.classifier.weight)
@@ -528,7 +528,6 @@ def main(args):
                         standard_logits = kglp_model(subject_embs, label_embs, object_embs)
                         cyclic_logits = kglp_model(subject_embs, pred_rels, object_embs)
                         # Compute JRRELP auxiliary loss terms
-                        print('STANDARD LOGITS: {} | KNOWN OBJECTS: {}'.format(standard_logits.type(), known_objects.type()))
                         standard_loss = kglp_model.loss(standard_logits, known_objects)
                         cyclic_loss = kglp_model.loss(cyclic_logits, known_objects)
                         # Aggregate loss with JRRELP weight
