@@ -516,6 +516,8 @@ def main(args):
                         loss = loss.mean()
 
                     if args.with_jrrelp:
+                        if args.fp16:
+                            known_objects.half()
                         # Get Input Embeddings
                         # Relation Embeddings come from SpanBERT output later
                         label_embs = F.embedding(label_ids, model.classifier.weight)
