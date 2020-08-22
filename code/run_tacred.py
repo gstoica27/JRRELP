@@ -472,6 +472,8 @@ def main(args):
                     'num_objects': len(object_indices.cpu().numpy().tolist()),
                 }
                 kglp_model = ConvE(kglp_config)
+                if args.fp16:
+                    kglp_model.half()
                 kglp_model.to(device)
             if args.fp16:
                 try:
