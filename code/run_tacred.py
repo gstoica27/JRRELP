@@ -624,6 +624,7 @@ def main(args):
                             tokenizer.save_vocabulary(args.output_dir)
                             if best_result:
                                 output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
+                                print('Saving results to: {}'.format(output_eval_file))
                                 with open(output_eval_file, "w") as writer:
                                     for key in sorted(result.keys()):
                                         writer.write("%s = %s\n" % (key, str(result[key])))
