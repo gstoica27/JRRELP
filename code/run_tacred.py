@@ -458,8 +458,8 @@ def main(args):
                 # TODO: This is hardcoded. move it to config file
                 kglp_config = {
                     'input_drop': 0.5,
-                    'hidden_drop': 0.5,
-                    'feat_drop': 0.5,
+                    'hidden_drop': 0.75,
+                    'feat_drop': 0.75,
                     'ent_emb_dim': 1024,
                     'ent_emb_shape1': 8,
                     'rel_emb_dim': 1024,
