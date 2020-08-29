@@ -46,11 +46,10 @@ def create_model_name(cfg_dict):
         cfg_dict['seed'], cfg_dict['eval_metric'], cfg_dict['max_seq_length']
     )
     if cfg_dict.get('kglp', None) is not None and cfg_dict['with_jrrelp']:
-        kglp_task = '{}-{}-{}-{}-{}'.format(
+        kglp_task = '{}-{}-{}-{}'.format(
             cfg_dict['jrrelp_lambda'],
             cfg_dict['without_observed'],
             cfg_dict['without_verification'],
-            cfg_dict['without_no_relation'],
             cfg_dict['exclude_no_relation']
         )
         lp_cfg = cfg_dict['kglp']
