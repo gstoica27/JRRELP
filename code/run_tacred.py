@@ -45,12 +45,13 @@ def create_model_name(cfg_dict):
         cfg_dict['feature_mode'], cfg_dict['learning_rate'], cfg_dict['warmup_proportion'],
         cfg_dict['seed'], cfg_dict['eval_metric'], cfg_dict['max_seq_length']
     )
-    if cfg_dict.get('kglp', None) is not None:
-        kglp_task = '{}-{}-{}-{}'.format(
+    if cfg_dict.get('kglp', None) is not None and cfg_dict['with_jrrelp']:
+        kglp_task = '{}-{}-{}-{}-{}'.format(
             cfg_dict['jrrelp_lambda'],
             cfg_dict['without_observed'],
             cfg_dict['without_verification'],
-            cfg_dict['without_no_relation']
+            cfg_dict['without_no_relation'],
+            cfg_dict['exclude_no_relation']
         )
         lp_cfg = cfg_dict['kglp']
         kglp_name = '{}-{}-{}-{}-{}-{}-{}'.format(
@@ -562,10 +563,16 @@ def main(args):
                         standard_logits = kglp_model(subject_embs, label_embs, object_embs)
                         cyclic_logits = kglp_model(subject_embs, pred_rels, object_embs)
                         # Compute JRRELP auxiliary loss terms
-                        standard_loss = kglp_model.loss(standard_logits, known_objects).mean()
+                        standard_loss = kglp_model.loss(standard_logits, known_objects)
                         standard_loss *= (1. - args['without_observed'])
-                        cyclic_loss = kglp_model.loss(cyclic_logits, known_objects).mean()
+                        cyclic_loss = kglp_model.loss(cyclic_logits, known_objects)
                         cyclic_loss *= (1 - args['without_verification'])
+                        if args.exclude_no_relation:
+                            no_relation_blacklist = torch.eq(label_ids, label2id['no_relation']).eq(0).type(torch.half).unsqueeze(-1)
+                            standard_loss *= no_relation_blacklist
+                            cyclic_loss *= no_relation_blacklist
+                        standard_loss = standard_loss.mean()
+                        cyclic_loss = cyclic_loss.mean()
                         # Aggregate loss with JRRELP weight
                         loss += args.jrrelp_lambda * (standard_loss + cyclic_loss)
 
