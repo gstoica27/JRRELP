@@ -53,11 +53,14 @@ def create_model_name(cfg_dict):
             cfg_dict['exclude_no_relation']
         )
         lp_cfg = cfg_dict['kglp']
-        kglp_name = '{}-{}-{}-{}-{}-{}-{}'.format(
+        kglp_name = '{}-{}-{}-{}-{}-{}-{}-{}-{}-{}'.format(
             lp_cfg['input_drop'], lp_cfg['hidden_drop'],
             lp_cfg['feat_drop'], lp_cfg['rel_emb_dim'],
             lp_cfg['use_bias'], lp_cfg['filter_channels'],
-            lp_cfg['stride']
+            lp_cfg['stride'],
+            lp_cfg['ent_emb_shape1'],
+            lp_cfg['rel_emb_shape1'],
+            lp_cfg['kernel_size']
         )
 
         aggregate_name = os.path.join(top_level_name, approach_type, main_name, kglp_task, kglp_name)
