@@ -28,4 +28,4 @@ with_jrrelp: True
 jrrelp_lambda: .1
 without_observed: False
 without_verification: False
-exclude_no_relation: False
+exclude_no_relation: True
