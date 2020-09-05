@@ -10,6 +10,7 @@ import random
 import argparse
 from shutil import copyfile
 import torch
+from collections import defaultdict
 import torch.nn as nn
 import torch.optim as optim
 
@@ -82,6 +83,7 @@ assert emb_matrix.shape[1] == opt['emb_dim']
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
 train_batch = DataLoader(opt['data_dir'] + '/train.json', opt['batch_size'], opt, vocab, evaluation=False)
 dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True)
+test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True)
 
 model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
 model_save_dir = opt['save_dir'] + '/' + model_id
@@ -107,6 +109,8 @@ global_step = 0
 global_start_time = time.time()
 format_str = '{}: step {}/{} (epoch {}/{}), loss = {:.6f} ({:.3f} sec/batch), lr: {:.6f}'
 max_steps = len(train_batch) * opt['num_epoch']
+best_dev_metrics = defaultdict(lambda: -np.inf)
+test_metrics_at_best_dev = defaultdict(lambda: -np.inf)
 
 # start training
 for epoch in range(1, opt['num_epoch']+1):
@@ -130,13 +134,44 @@ for epoch in range(1, opt['num_epoch']+1):
         predictions += preds
         dev_loss += loss
     predictions = [id2label[p] for p in predictions]
-    dev_p, dev_r, dev_f1 = scorer.score(dev_batch.gold(), predictions)
-    
+    current_dev_metrics = scorer.score(dev_batch.gold(), predictions)
+    dev_f1 = current_dev_metrics['f1']
+
     train_loss = train_loss / train_batch.num_examples * opt['batch_size'] # avg loss per batch
     dev_loss = dev_loss / dev_batch.num_examples * opt['batch_size']
     print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch,\
             train_loss, dev_loss, dev_f1))
     file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_f1))
+
+    print("Evaluating on test set...")
+    predictions = []
+    test_loss = 0
+    test_preds = []
+    for i, batch in enumerate(test_batch):
+        preds, probs, loss = model.predict(batch)
+        predictions += preds
+        test_loss += loss
+        test_preds += probs
+    predictions = [id2label[p] for p in predictions]
+    test_metrics_at_current_dev = scorer.score(test_batch.gold(), predictions)
+    test_f1 = test_metrics_at_current_dev['f1']
+
+    train_loss = train_loss / train_batch.num_examples * opt['batch_size']  # avg loss per batch
+    print("epoch {}: test_loss = {:.6f}, test_f1 = {:.4f}".format(epoch, test_loss, test_f1))
+    file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}".format(epoch, train_loss, test_loss, test_f1))
+
+    if best_dev_metrics['f1'] <= current_dev_metrics['f1']:
+        best_dev_metrics = current_dev_metrics
+        test_metrics_at_best_dev = test_metrics_at_current_dev
+
+    print_str = 'Best Dev Metrics |'
+    for name, value in best_dev_metrics.items():
+        print_str += ' {}: {} |'.format(name, value)
+    print(print_str)
+    print_str = 'Test Metrics at Best Dev |'
+    for name, value in test_metrics_at_best_dev.items():
+        print_str += ' {}: {} |'.format(name, value)
+    print(print_str)
 
     # save
     model_file = model_save_dir + '/checkpoint_epoch_{}.pt'.format(epoch)

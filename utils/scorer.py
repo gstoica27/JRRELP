@@ -93,7 +93,7 @@ def score(key, prediction, verbose=False):
     print( "Precision (micro): {:.3%}".format(prec_micro) )
     print( "   Recall (micro): {:.3%}".format(recall_micro) )
     print( "       F1 (micro): {:.3%}".format(f1_micro) )
-    return prec_micro, recall_micro, f1_micro
+    return {'precision': prec_micro, 'recall': recall_micro, 'f1': f1_micro}
 
 if __name__ == "__main__":
     # Parse the arguments from stdin
