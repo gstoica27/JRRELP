@@ -65,7 +65,7 @@ config_path = os.path.join(cwd, 'configs', f'{"server" if on_server else "local"
 with open(config_path, 'r') as file:
     opt = yaml.load(file)
 
-opt = vars(args)
+#opt = vars(args)
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
 random.seed(1234)

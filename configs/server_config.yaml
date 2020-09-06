@@ -15,7 +15,7 @@ lower: False  # Lowercase all words.
 lr: 1.0 # Applies to SGD and Adagrad
 lr_decay: 0.9
 optim: 'sgd'  # sgd, adagrad, adam or adamax.
-num_epoch: 30 # number of epochs
+num_epoch: 1 # number of epochs
 batch_size: 50
 max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
