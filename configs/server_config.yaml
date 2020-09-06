@@ -10,7 +10,7 @@ hidden_dim: 200 # RNN hidden state size.
 num_layers: 2 # Num of RNN layers.
 dropout: .5 # Input and RNN dropout rate.
 word_dropout: .04 # The rate at which randomly set a word to UNK.
-topn: 1e10  # Only finetune top N embeddings.
+topn: 10000000000  # Only finetune top N embeddings.
 lower: False  # Lowercase all words.
 lr: 1.0 # Applies to SGD and Adagrad
 lr_decay: 0.9
@@ -26,7 +26,7 @@ info: ''  # Optional info for the experiment.
 seed: 1234  # random seed
 remove_entity_types: False # Replace subject and object granular typing with universal subject and object
 cuda: True
-cpu: True # Ignore CUDA.
+cpu: False # Ignore CUDA.
 attn: False # Use attention layer.
 attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.

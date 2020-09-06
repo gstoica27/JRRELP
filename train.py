@@ -57,16 +57,15 @@ parser.add_argument('--info', type=str, default='', help='Optional info for the 
 parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
-# args = parser.parse_args()
+args = parser.parse_args()
 
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
 config_path = os.path.join(cwd, 'configs', f'{"server" if on_server else "local"}_config.yaml')
-# config_path = '/Users/georgestoica/Desktop/Research/tacred-exploration/configs/model_config.yaml'
-# config_path = '/zfsauton3/home/gis/research/tacred-exploration/configs/model_config_server.yaml'
 with open(config_path, 'r') as file:
     opt = yaml.load(file)
 
+opt = vars(args)
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
 random.seed(1234)
