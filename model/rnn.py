@@ -11,6 +11,39 @@ import torch.nn.functional as F
 from utils import constant, torch_utils
 from model import layers
 
+def unpack_batch(batch, cuda):
+    if cuda:
+        inputs = [Variable(b.cuda()) for b in batch[:10]]
+        labels = Variable(batch[10].cuda())
+    else:
+        inputs = [Variable(b) for b in batch[:10]]
+        labels = Variable(batch[10])
+    tokens = batch[0]
+    head = batch[5]
+    subj_pos = batch[6]
+    obj_pos = batch[7]
+    lens = batch[1].eq(0).long().sum(1).squeeze()
+    return inputs, labels, tokens, head, subj_pos, obj_pos, lens
+
+def maybe_place_batch_on_cuda(batch, use_cuda):
+    placed_batch = {}
+    for name, data in batch.items():
+        if name == 'base':
+            base_batch = batch['base'][:7]
+            labels = batch['base'][7]
+            orig_idx = batch['base'][8]
+            if use_cuda:
+                placed_batch['base'] = [component.cuda() for component in base_batch]
+                labels = labels.cuda()
+            else:
+                placed_batch['base'] = base_batch
+        else:
+            if use_cuda:
+                placed_batch[name] = [component.cuda() for component in data]
+            else:
+                placed_batch[name] = data
+    return placed_batch, labels, orig_idx
+
 class RelationModel(object):
     """ A wrapper class for the training and evaluation of models. """
     def __init__(self, opt, emb_matrix=None):
@@ -25,12 +58,13 @@ class RelationModel(object):
     
     def update(self, batch):
         """ Run a step of forward and backward model update. """
-        if self.opt['cuda']:
-            inputs = [b.cuda() for b in batch[:7]]
-            labels = batch[7].cuda()
-        else:
-            inputs = [b for b in batch[:7]]
-            labels = batch[7]
+        # if self.opt['cuda']:
+        #     inputs = [b.cuda() for b in batch[:7]]
+        #     labels = batch[7].cuda()
+        # else:
+        #     inputs = [b for b in batch[:7]]
+        #     labels = batch[7]
+        inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
 
         # step forward
         self.model.train()
@@ -47,14 +81,14 @@ class RelationModel(object):
 
     def predict(self, batch, unsort=True):
         """ Run forward prediction. If unsort is True, recover the original order of the batch. """
-        if self.opt['cuda']:
-            inputs = [b.cuda() for b in batch[:7]]
-            labels = batch[7].cuda()
-        else:
-            inputs = [b for b in batch[:7]]
-            labels = batch[7]
-
-        orig_idx = batch[8]
+        # if self.opt['cuda']:
+        #     inputs = [b.cuda() for b in batch[:7]]
+        #     labels = batch[7].cuda()
+        # else:
+        #     inputs = [b for b in batch[:7]]
+        #     labels = batch[7]
+        inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
+        # orig_idx = batch[8]
 
         # forward
         self.model.eval()
@@ -157,7 +191,8 @@ class PositionAwareRNN(nn.Module):
             return h0, c0
     
     def forward(self, inputs):
-        words, masks, pos, ner, deprel, subj_pos, obj_pos = inputs # unpack
+        base_inputs = inputs['base']
+        words, masks, pos, ner, deprel, subj_pos, obj_pos = base_inputs # unpack
         seq_lens = list(masks.data.eq(constant.PAD_ID).long().sum(1).squeeze())
         batch_size = words.size()[0]
         
