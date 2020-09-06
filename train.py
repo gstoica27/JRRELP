@@ -20,54 +20,46 @@ from model.rnn import RelationModel
 from utils import scorer, constant, helper
 from utils.vocab import Vocab
 
-def add_kg_model_params(cfg_dict, cwd):
-    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
+def add_kg_model_params(opt, cwd):
+    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'kglp_config.yaml')
     with open(link_prediction_cfg_file, 'r') as handle:
         link_prediction_config = yaml.load(handle)
-    link_prediction_model = cfg_dict['link_prediction']['model']
+    link_prediction_model = opt['link_prediction']['model']
     params = link_prediction_config[link_prediction_model]
     params['name'] = link_prediction_model
-    params['freeze_network'] = cfg_dict['link_prediction']['freeze_network']
+    params['freeze_network'] = opt['link_prediction']['freeze_network']
     return params
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--data_dir', type=str, default='dataset/tacred')
-# parser.add_argument('--vocab_dir', type=str, default='dataset/vocab')
-# parser.add_argument('--emb_dim', type=int, default=300, help='Word embedding dimension.')
-# parser.add_argument('--ner_dim', type=int, default=30, help='NER embedding dimension.')
-# parser.add_argument('--pos_dim', type=int, default=30, help='POS embedding dimension.')
-# parser.add_argument('--hidden_dim', type=int, default=200, help='RNN hidden state size.')
-# parser.add_argument('--num_layers', type=int, default=2, help='Num of RNN layers.')
-# parser.add_argument('--dropout', type=float, default=0.5, help='Input and RNN dropout rate.')
-# parser.add_argument('--word_dropout', type=float, default=0.04, help='The rate at which randomly set a word to UNK.')
-# parser.add_argument('--topn', type=int, default=1e10, help='Only finetune top N embeddings.')
-# parser.add_argument('--lower', dest='lower', action='store_true', help='Lowercase all words.')
-# parser.add_argument('--no-lower', dest='lower', action='store_false')
-# parser.set_defaults(lower=False)
-#
-# parser.add_argument('--attn', dest='attn', action='store_true', help='Use attention layer.')
-# parser.add_argument('--no-attn', dest='attn', action='store_false')
-# parser.set_defaults(attn=True)
-# parser.add_argument('--attn_dim', type=int, default=200, help='Attention size.')
-# parser.add_argument('--pe_dim', type=int, default=30, help='Position encoding dimension.')
-#
-# parser.add_argument('--lr', type=float, default=1.0, help='Applies to SGD and Adagrad.')
-# parser.add_argument('--lr_decay', type=float, default=0.9)
-# parser.add_argument('--optim', type=str, default='sgd', help='sgd, adagrad, adam or adamax.')
-# parser.add_argument('--num_epoch', type=int, default=30)
-# parser.add_argument('--batch_size', type=int, default=50)
-# parser.add_argument('--max_grad_norm', type=float, default=5.0, help='Gradient clipping.')
-# parser.add_argument('--log_step', type=int, default=20, help='Print log every k steps.')
-# parser.add_argument('--log', type=str, default='logs.txt', help='Write training log to file.')
-# parser.add_argument('--save_epoch', type=int, default=5, help='Save model checkpoints every k epochs.')
-# parser.add_argument('--save_dir', type=str, default='./saved_models', help='Root dir for saving models.')
-# parser.add_argument('--id', type=str, default='00', help='Model ID under which to save models.')
-# parser.add_argument('--info', type=str, default='', help='Optional info for the experiment.')
-#
-# parser.add_argument('--seed', type=int, default=1234)
-# parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
-# parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
-# args = parser.parse_args()
+def create_model_name(opt):
+    top_level_name = 'TACRED'
+    approach_type = 'PALSTM-JRRELP' if opt['link_prediction'] is not None else 'PALSTM'
+    main_name = '{}-{}-{}-{}'.format(
+        opt['optim'], opt['lr'], opt['lr_decay'],
+        opt['seed']
+    )
+    if opt['link_prediction'] is not None:
+        kglp_task_cfg = opt['link_prediction']
+        kglp_task = '{}-{}-{}-{}-{}-{}-{}'.format(
+            kglp_task_cfg['label_smoothing'],
+            kglp_task_cfg['lambda'],
+            kglp_task_cfg['freeze_network'],
+            kglp_task_cfg['with_relu'],
+            kglp_task_cfg['without_observed'],
+            kglp_task_cfg['without_verification'],
+            kglp_task_cfg['without_no_relation']
+        )
+        lp_cfg = opt['link_prediction']['model']
+        kglp_name = '{}-{}-{}-{}-{}-{}-{}'.format(
+            lp_cfg['input_drop'], lp_cfg['hidden_drop'],
+            lp_cfg['feat_drop'], lp_cfg['rel_emb_dim'],
+            lp_cfg['use_bias'], lp_cfg['filter_channels'],
+            lp_cfg['stride']
+        )
+
+        aggregate_name = os.path.join(top_level_name, approach_type, main_name, kglp_task, kglp_name)
+    else:
+        aggregate_name = os.path.join(top_level_name, approach_type, main_name)
+    return aggregate_name
 
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
@@ -104,7 +96,14 @@ train_batch = DataLoader(opt['data_dir'] + '/train.json', opt['batch_size'], opt
 dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True)
 test_batch = DataLoader(opt['data_dir'] + '/test.json', opt['batch_size'], opt, vocab, evaluation=True)
 
-model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
+if opt['link_prediction'] is not None:
+    opt['link_prediction']['model'] = add_kg_model_params(opt, cwd)
+    opt['num_relations'] = len(constant.LABEL_TO_ID)
+    opt['num_subjects'] = len(constant.SUBJ_NER_TO_ID) - 2
+    opt['num_objects'] = len(constant.OBJ_NER_TO_ID) - 2
+    opt['link_prediction']['model']['num_objects'] = opt['num_objects']
+
+model_id = create_model_name(opt)
 model_save_dir = opt['save_dir'] + '/' + model_id
 opt['model_save_dir'] = model_save_dir
 helper.ensure_dir(model_save_dir, verbose=True)
