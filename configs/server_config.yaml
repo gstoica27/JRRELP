@@ -14,7 +14,7 @@ lower: False  # Lowercase all words.
 lr: 1.0 # Applies to SGD and Adagrad
 lr_decay: 0.9
 optim: 'sgd'  # sgd, adagrad, adam or adamax.
-num_epoch: 1 # number of epochs
+num_epoch: 100 # number of epochs
 batch_size: 50
 max_grad_norm: 5.0  # Gradient Clipping.
 log_step: 20  # Print log every k steps.
@@ -30,10 +30,10 @@ attn: True # Use attention layer.
 attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.
 link_prediction:
-#  model: 'ConvE'
-#  label_smoothing: .1
-#  lambda: .5
-#  freeze_network: False
-#  without_observed: False
-#  without_verification: False
-#  without_no_relation: False
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: .5
+  freeze_network: False
+  without_observed: False
+  without_verification: False
+  without_no_relation: False
