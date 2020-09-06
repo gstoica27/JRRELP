@@ -27,7 +27,7 @@ seed: 1234  # random seed
 remove_entity_types: False # Replace subject and object granular typing with universal subject and object
 cuda: True
 cpu: False # Ignore CUDA.
-attn: False # Use attention layer.
+attn: True # Use attention layer.
 attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.
 kg_loss:
