@@ -39,11 +39,10 @@ def create_model_name(opt):
     )
     if opt['link_prediction'] is not None:
         kglp_task_cfg = opt['link_prediction']
-        kglp_task = '{}-{}-{}-{}-{}-{}-{}'.format(
+        kglp_task = '{}-{}-{}-{}-{}-{}'.format(
             kglp_task_cfg['label_smoothing'],
             kglp_task_cfg['lambda'],
             kglp_task_cfg['freeze_network'],
-            kglp_task_cfg['with_relu'],
             kglp_task_cfg['without_observed'],
             kglp_task_cfg['without_verification'],
             kglp_task_cfg['without_no_relation']
