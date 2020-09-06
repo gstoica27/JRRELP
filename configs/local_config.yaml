@@ -29,7 +29,7 @@ cpu: True # Ignore CUDA.
 attn: True # Use attention layer.
 attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.
-kg_loss:
+link_prediction:
 #  model: 'ConvE'
 #  label_smoothing: .1
 #  lambda: .5

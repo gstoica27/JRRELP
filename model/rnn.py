@@ -10,20 +10,19 @@ import torch.nn.functional as F
 
 from utils import constant, torch_utils
 from model import layers
+from model.link_prediction_models import *
 
-def unpack_batch(batch, cuda):
-    if cuda:
-        inputs = [Variable(b.cuda()) for b in batch[:10]]
-        labels = Variable(batch[10].cuda())
+def initialize_link_prediction_model(params):
+    name = params['name'].lower()
+    if name == 'distmult':
+        model = DistMult(params)
+    elif name == 'conve':
+        model = ConvE(params)
+    elif name == 'complex':
+        model = Complex(params)
     else:
-        inputs = [Variable(b) for b in batch[:10]]
-        labels = Variable(batch[10])
-    tokens = batch[0]
-    head = batch[5]
-    subj_pos = batch[6]
-    obj_pos = batch[7]
-    lens = batch[1].eq(0).long().sum(1).squeeze()
-    return inputs, labels, tokens, head, subj_pos, obj_pos, lens
+        raise ValueError('Only, {distmult, conve, and complex}  are supported')
+    return model
 
 def maybe_place_batch_on_cuda(batch, use_cuda):
     placed_batch = {}
@@ -58,20 +57,23 @@ class RelationModel(object):
     
     def update(self, batch):
         """ Run a step of forward and backward model update. """
-        # if self.opt['cuda']:
-        #     inputs = [b.cuda() for b in batch[:7]]
-        #     labels = batch[7].cuda()
-        # else:
-        #     inputs = [b for b in batch[:7]]
-        #     labels = batch[7]
+        losses = {}
         inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
 
         # step forward
         self.model.train()
         self.optimizer.zero_grad()
-        logits, _ = self.model(inputs)
+        logits, _, supplemental_losses = self.model(inputs)
         loss = self.criterion(logits, labels)
-        
+
+        if self.opt['link_prediction'] is not None:
+            kglp_loss = supplemental_losses['kglp']
+            verification_loss = supplemental_losses['verification']
+            loss += (kglp_loss + verification_loss) * self.opt['link_prediction']['lambda']
+            kglp_loss_value = kglp_loss.data.item()
+            verification_loss_value = verification_loss.data.item()
+            losses.update({'kglp': kglp_loss_value, 'verification': verification_loss_value})
+
         # backward
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.opt['max_grad_norm'])
@@ -92,7 +94,7 @@ class RelationModel(object):
 
         # forward
         self.model.eval()
-        logits, _ = self.model(inputs)
+        logits, _, _ = self.model(inputs)
         loss = self.criterion(logits, labels)
         probs = F.softmax(logits, dim=1).data.cpu().numpy().tolist()
         predictions = np.argmax(logits.data.cpu().numpy(), axis=1).tolist()
@@ -149,10 +151,21 @@ class PositionAwareRNN(nn.Module):
                     opt['hidden_dim'], 2*opt['pe_dim'], opt['attn_dim'])
             self.pe_emb = nn.Embedding(constant.MAX_LEN * 2 + 1, opt['pe_dim'])
 
+        # LP Model
+        if opt['link_prediction'] is not None:
+            link_prediction_cfg = opt['link_prediction']['model']
+            self.rel_emb = nn.Embedding(opt['num_relations'], link_prediction_cfg['rel_emb_dim'])
+            self.register_parameter('rel_bias', torch.nn.Parameter(torch.zeros((opt['num_relations']))))
+            self.object_indices = torch.from_numpy(np.array(self.object_indices))
+            if opt['cuda']:
+                self.object_indices = self.object_indices.cuda()
+            self.lp_model = initialize_link_prediction_model(link_prediction_cfg)
+
         self.opt = opt
         self.topn = self.opt.get('topn', 1e10)
         self.use_cuda = opt['cuda']
         self.emb_matrix = emb_matrix
+        self.object_indices = opt['object_indices']
         self.init_weights()
     
     def init_weights(self):
@@ -225,7 +238,33 @@ class PositionAwareRNN(nn.Module):
         else:
             final_hidden = hidden
 
-        logits = self.linear(final_hidden)
-        return logits, final_hidden
+        if self.opt['link_prediction'] is not None:
+            subjects, relations, labels = inputs['kg']
+            # object indices to compare against
+            object_embs = self.emb(self.object_indices)
+            # Obtain embeddings
+            subject_embs = self.emb(subjects)
+            relation_embs = self.rel_emb(relations)
+            # Predict objects with LP model
+            kglp_preds = self.lp_model(subject_embs, relation_embs, object_embs)
+            verification_preds = self.lp_model(subject_embs, outputs, object_embs)
+            # Compute each loss term
+            relation_kg_loss = self.kg_model.loss(kglp_preds, labels)
+            sentence_kg_loss = self.kg_model.loss(verification_preds, labels)
+            if self.opt['link_prediction']['without_no_relation']:
+                positive_relations = torch.eq(labels, constant.NO_RELATION_ID).eq(0).type(torch.float32)
+                relation_kg_loss = relation_kg_loss * positive_relations
+                sentence_kg_loss = sentence_kg_loss * positive_relations
+            kglp_loss = relation_kg_loss.mean() * (1 - self.opt['link_prediction']['without_observed'])
+            verification_loss = sentence_kg_loss.mean() * (1 - self.opt['link_prediction']['without_verification'])
+            supplemental_losses = {'kglp':kglp_loss, 'verification': verification_loss}
+            # Remove gradient from flowing to the relation embeddings in the main loss calculation
+            logits = torch.mm(final_hidden, self.rel_emb.weight.transpose(1, 0).detach())
+            #logits += self.class_bias
+        else:
+            supplemental_losses = {}
+            logits = self.linear(final_hidden)
+
+        return logits, final_hidden, supplemental_losses
     
 

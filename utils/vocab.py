@@ -57,6 +57,7 @@ class Vocab(object):
             # load from file and ignore all other params
             self.id2word, self.word2id = self.load(filename)
             self.size = len(self.id2word)
+            self.obj_idxs = [value for word, value in self.word2id.items() if 'OBJ-' in word]
             print("Vocab size {} loaded from file".format(self.size))
         else:
             print("Creating vocab from scratch...")
