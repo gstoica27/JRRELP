@@ -116,7 +116,7 @@ class PositionAwareRNN(nn.Module):
             self.pe_emb = nn.Embedding(constant.MAX_LEN * 2 + 1, opt['pe_dim'])
 
         self.opt = opt
-        self.topn = self.opt.get('topn', 1e10)
+        self.topn = eval(self.opt.get('topn', 1e10))
         self.use_cuda = opt['cuda']
         self.emb_matrix = emb_matrix
         self.init_weights()
