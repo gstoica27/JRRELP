@@ -30,11 +30,10 @@ attn: True # Use attention layer.
 attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.
 link_prediction:
-#  model: 'ConvE'
-#  label_smoothing: .1
-#  lambda: .5
-#  freeze_embeddings: False
-#  vocab_path: '/Volumes/External HDD/dataset/tacred/data/json'
-#  without_observed: False
-#  without_verification: False
-#  without_no_relation: True
+  model: 'ConvE'
+  label_smoothing: .1
+  lambda: .5
+  freeze_network: False
+  without_observed: False
+  without_verification: False
+  without_no_relation: True

@@ -132,6 +132,7 @@ class PositionAwareRNN(nn.Module):
 
     def __init__(self, opt, emb_matrix=None):
         super(PositionAwareRNN, self).__init__()
+        self.object_indices = opt['object_indices']
         self.drop = nn.Dropout(opt['dropout'])
         self.emb = nn.Embedding(opt['vocab_size'], opt['emb_dim'], padding_idx=constant.PAD_ID)
         if opt['pos_dim'] > 0:
@@ -165,7 +166,6 @@ class PositionAwareRNN(nn.Module):
         self.topn = self.opt.get('topn', 1e10)
         self.use_cuda = opt['cuda']
         self.emb_matrix = emb_matrix
-        self.object_indices = opt['object_indices']
         self.init_weights()
     
     def init_weights(self):
@@ -205,6 +205,7 @@ class PositionAwareRNN(nn.Module):
     
     def forward(self, inputs):
         base_inputs = inputs['base']
+        kg_inputs = inputs.get('kg', None)
         words, masks, pos, ner, deprel, subj_pos, obj_pos = base_inputs # unpack
         seq_lens = list(masks.data.eq(constant.PAD_ID).long().sum(1).squeeze())
         batch_size = words.size()[0]
@@ -239,7 +240,7 @@ class PositionAwareRNN(nn.Module):
             final_hidden = hidden
 
         if self.opt['link_prediction'] is not None:
-            subjects, relations, labels = inputs['kg']
+            subjects, relations, labels = kg_inputs
             # object indices to compare against
             object_embs = self.emb(self.object_indices)
             # Obtain embeddings
@@ -247,10 +248,10 @@ class PositionAwareRNN(nn.Module):
             relation_embs = self.rel_emb(relations)
             # Predict objects with LP model
             kglp_preds = self.lp_model(subject_embs, relation_embs, object_embs)
-            verification_preds = self.lp_model(subject_embs, outputs, object_embs)
+            verification_preds = self.lp_model(subject_embs, final_hidden, object_embs)
             # Compute each loss term
-            relation_kg_loss = self.kg_model.loss(kglp_preds, labels)
-            sentence_kg_loss = self.kg_model.loss(verification_preds, labels)
+            relation_kg_loss = self.lp_model.loss(kglp_preds, labels)
+            sentence_kg_loss = self.lp_model.loss(verification_preds, labels)
             if self.opt['link_prediction']['without_no_relation']:
                 positive_relations = torch.eq(labels, constant.NO_RELATION_ID).eq(0).type(torch.float32)
                 relation_kg_loss = relation_kg_loss * positive_relations

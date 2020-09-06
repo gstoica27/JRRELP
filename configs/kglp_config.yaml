@@ -1,17 +1,18 @@
+
 ConvE:
-  embedding_dim: 300
   input_drop: 0.2
   hidden_drop: 0.3
   feat_drop: 0.2
-  embedding_shape1: 30
+  ent_emb_dim: 300
+  ent_emb_shape1: 30
+  rel_emb_dim: 200
+  rel_emb_shape1: 20
   use_bias: False
   kernel_size: (3, 3)
   filter_channels: 32
   stride: 1
   padding: 0
   load_path:
-#  load_path: '/usr0/home/gis/research/KGRE/saved_models/tacred_conve_pretrained-ents.model'
-#  load_path: '/Users/georgestoica/Desktop/Research/KGRE/saved_models/tacred_conve.model'
 DistMult:
   embedding_dim: 300
   input_drop: 0.04
