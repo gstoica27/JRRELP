@@ -14,9 +14,52 @@ from data.loader import DataLoader
 from model.rnn import RelationModel
 from utils import torch_utils, scorer, constant, helper
 from utils.vocab import Vocab
+import yaml
+import numpy as np
+
+
+def generate_param_list(params, cfg_dict, prefix=''):
+    param_list = prefix
+    for param in params:
+        if param_list == '':
+            param_list += f'{cfg_dict[param]}'
+        else:
+            param_list += f'-{cfg_dict[param]}'
+    return param_list
+
+def create_model_name(opt):
+    top_level_name = 'TACRED'
+    approach_type = 'PALSTM-JRRELP' if opt['link_prediction'] is not None else 'PALSTM'
+    main_name = '{}-{}-{}-{}'.format(
+        opt['optim'], opt['lr'], opt['lr_decay'],
+        opt['seed']
+    )
+    if opt['link_prediction'] is not None:
+        kglp_task_cfg = opt['link_prediction']
+        kglp_task = '{}-{}-{}-{}-{}-{}'.format(
+            kglp_task_cfg['label_smoothing'],
+            kglp_task_cfg['lambda'],
+            kglp_task_cfg['freeze_network'],
+            kglp_task_cfg['without_observed'],
+            kglp_task_cfg['without_verification'],
+            kglp_task_cfg['without_no_relation']
+        )
+        lp_cfg = opt['link_prediction']['model']
+        kglp_name = '{}-{}-{}-{}-{}-{}-{}'.format(
+            lp_cfg['input_drop'], lp_cfg['hidden_drop'],
+            lp_cfg['feat_drop'], lp_cfg['rel_emb_dim'],
+            lp_cfg['use_bias'], lp_cfg['filter_channels'],
+            lp_cfg['stride']
+        )
+
+        aggregate_name = os.path.join(top_level_name, approach_type, main_name, kglp_task, kglp_name)
+    else:
+        aggregate_name = os.path.join(top_level_name, approach_type, main_name)
+    return aggregate_name
+
 
 parser = argparse.ArgumentParser()
-parser.add_argument('model_dir', type=str, help='Directory of the model.')
+# parser.add_argument('model_dir', type=str, help='Directory of the model.')
 parser.add_argument('--model', type=str, default='best_model.pt', help='Name of the model file.')
 parser.add_argument('--data_dir', type=str, default='dataset/tacred')
 parser.add_argument('--dataset', type=str, default='test', help="Evaluate on dev or test.")
@@ -27,27 +70,50 @@ parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--cpu', action='store_true')
 args = parser.parse_args()
 
-torch.manual_seed(args.seed)
+cwd = os.getcwd()
+on_server = 'Desktop' not in cwd
+config_path = os.path.join(cwd, 'configs', f'{"server" if on_server else "local"}_config.yaml')
+
+def add_kg_model_params(cfg_dict, cwd):
+    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
+    with open(link_prediction_cfg_file, 'r') as handle:
+        link_prediction_config = yaml.load(handle)
+    link_prediction_model = cfg_dict['link_prediction']['model']
+    params = link_prediction_config[link_prediction_model]
+    params['name'] = link_prediction_model
+    params['freeze_network'] = cfg_dict['link_prediction']['freeze_network']
+    return params
+
+with open(config_path, 'r') as file:
+    cfg_dict = yaml.load(file)
+
+opt = cfg_dict
+opt['id'] = create_model_name(opt)
+#opt = vars(args)
+torch.manual_seed(opt['seed'])
+np.random.seed(opt['seed'])
 random.seed(1234)
-if args.cpu:
-    args.cuda = False
-elif args.cuda:
-    torch.cuda.manual_seed(args.seed)
+if opt['cpu']:
+    opt['cuda'] = False
+elif opt['cuda']:
+    torch.cuda.manual_seed(opt['seed'])
 
 # load opt
-model_file = args.model_dir + '/' + args.model
+model_load_dir = opt['save_dir'] + '/' + opt['id']
+print(model_load_dir)
+model_file = os.path.join(model_load_dir, 'best_model.pt')
 print("Loading model from {}".format(model_file))
 opt = torch_utils.load_config(model_file)
 model = RelationModel(opt)
 model.load(model_file)
-
 # load vocab
-vocab_file = args.model_dir + '/vocab.pkl'
+vocab_file = opt['vocab_dir'] + '/vocab.pkl'
 vocab = Vocab(vocab_file, load=True)
 assert opt['vocab_size'] == vocab.size, "Vocab size must match that in the saved model."
-
+# Add subject/object indices
+opt['object_indices'] = vocab.obj_idxs
 # load data
-data_file = opt['data_dir'] + '/{}.json'.format(args.dataset)
+data_file = opt['data_dir'] +f'/test.json'
 print("Loading data from {} with batch size {}...".format(data_file, opt['batch_size']))
 batch = DataLoader(data_file, opt['batch_size'], opt, vocab, evaluation=True)
 
@@ -61,7 +127,7 @@ for i, b in enumerate(batch):
     predictions += preds
     all_probs += probs
 predictions = [id2label[p] for p in predictions]
-p, r, f1 = scorer.score(batch.gold(), predictions, verbose=True)
+scorer.score(batch.gold(), predictions, verbose=True)
 
 # save probability scores
 if len(args.out) > 0:
