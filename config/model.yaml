@@ -1,5 +1,5 @@
 model: spanbert-large-cased
-data_dir: /usr0/home/gis/data/tacred/data/json
+data_dir: /home/ec2-user/apex/main_dataset
 output_dir:
 eval_per_epoch: 10
 max_seq_length: 128
@@ -12,12 +12,12 @@ eval_test: True
 
 do_lower_case: False
 feature_mode: ner
-train_batch_size: 16
+train_batch_size: 64
 eval_batch_size: 32
 eval_metric: f1
-learning_rate: 0.00002
-num_train_epochs: 10
-warmup_proportion: .1
+learning_rate: 0.000017
+num_train_epochs: 15
+warmup_proportion: .2
 no_cuda: False
 seed: 42
 gradient_accumulation_steps: 2
@@ -25,7 +25,7 @@ fp16: True
 loss_scale: 0
 
 with_jrrelp: True
-jrrelp_lambda: .1
+jrrelp_lambda: .01
 without_observed: False
 without_verification: False
-exclude_no_relation: True
+exclude_no_relation: False
