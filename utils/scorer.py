@@ -236,15 +236,15 @@ def score(key, prediction, verbose=False):
                     category2records[category]['gold_by_relation'].append(gold)
         category_f1s = {}
         for category, records in category2records.items():
-            correct_by_relation = sum(records['correct_by_relation'])
-            guessed_by_relation = sum(records['guessed_by_relation'])
-            gold_by_relation = sum(records['gold_by_relation'])
+            correct_by_relation_ = sum(records['correct_by_relation'])
+            guessed_by_relation_ = sum(records['guessed_by_relation'])
+            gold_by_relation_ = sum(records['gold_by_relation'])
             precision = 1.0
-            if guessed_by_relation > 0:
-                precision = float(correct_by_relation) / float(guessed_by_relation)
+            if guessed_by_relation_ > 0:
+                precision = float(correct_by_relation_) / float(guessed_by_relation_)
             recall = 0
-            if gold_by_relation > 0:
-                recall = float(correct_by_relation) / float(gold_by_relation)
+            if gold_by_relation_ > 0:
+                recall = float(correct_by_relation_) / float(gold_by_relation_)
             f1 = 0
             if precision + recall > 0:
                 f1 = 2.0 * precision * recall / (precision + recall)
