@@ -8,6 +8,144 @@ import argparse
 import sys
 from collections import Counter
 
+category_maps = {
+    'positive': {
+        'per:identity',
+        'per:title',
+        'per:employee_of',
+        'org:top_members/employees',
+        'org:alternate_names',
+        'org:country_of_headquarters',
+        'org:city_of_headquarters',
+        'per:age',
+        'org:members',
+        'per:origin',
+        'per:countries_of_residence',
+        'per:spouse',
+        'org:member_of',
+        'org:stateorprovince_of_headquarters',
+        'per:date_of_death',
+        'per:children',
+        'per:cities_of_residence',
+        'per:stateorprovinces_of_residence',
+        'per:parents',
+        'per:cause_of_death',
+        'per:charges',
+        'per:siblings',
+        'per:city_of_death',
+        'org:founded_by',
+        'org:political/religious_affiliation',
+        'org:website',
+        'per:schools_attended',
+        'per:religion',
+        'org:other_location_of_headquarters',
+        'per:other_family',
+        'org:shareholders',
+        'org:founded',
+        'per:city_of_birth',
+        'per:stateorprovince_of_death',
+        'per:date_of_birth',
+        'org:number_of_employees/members',
+        'per:stateorprovince_of_birth',
+        'per:country_of_death',
+        'per:country_of_birth',
+        'org:dissolved',
+        'org:parents',
+        'org:subsidiaries',
+        'per:alternate_names'
+    },
+    'per:*': {
+        'per:identity',
+        'per:title',
+        'per:employee_of',
+        'per:age',
+        'per:origin',
+        'per:countries_of_residence',
+        'per:spouse',
+        'per:date_of_death',
+        'per:children',
+        'per:cities_of_residence',
+        'per:stateorprovinces_of_residence',
+        'per:parents',
+        'per:cause_of_death',
+        'per:charges',
+        'per:siblings',
+        'per:city_of_death',
+        'per:schools_attended',
+        'per:religion',
+        'per:other_family',
+        'per:city_of_birth',
+        'per:stateorprovince_of_death',
+        'per:date_of_birth',
+        'per:stateorprovince_of_birth',
+        'per:country_of_death',
+        'per:country_of_birth',
+        'per:alternate_names'
+    },
+    'org:*': {
+        'org:top_members/employees',
+        'org:alternate_names',
+        'org:country_of_headquarters',
+        'org:city_of_headquarters',
+        'org:members',
+        'org:member_of',
+        'org:stateorprovince_of_headquarters',
+        'org:founded_by',
+        'org:political/religious_affiliation',
+        'org:website',
+        'org:other_location_of_headquarters',
+        'org:shareholders',
+        'org:founded',
+        'org:number_of_employees/members',
+        'org:dissolved',
+        'org:parents',
+        'org:subsidiaries',
+    },
+    'per:org': {
+        'per:employee_of',
+        'per:schools_attended',
+    },
+    'org:per': {
+        'org:top_members/employees',
+        'org:founded_by',
+        'org:shareholders',
+    },
+    'per:loc': {
+        'per:countries_of_residence',
+        'per:cities_of_residence',
+        'per:stateorprovinces_of_residence',
+        'per:city_of_death',
+        'per:city_of_birth',
+        'per:stateorprovince_of_death',
+        'per:stateorprovince_of_birth',
+        'per:country_of_death',
+        'per:country_of_birth',
+
+    },
+    'same_nertag': {
+        'per:identity',
+        'per:alternate_names',
+        'org:alternate_names'
+    },
+    'per:per': {
+        'per:identity',
+        'per:spouse',
+        'per:children',
+        'per:parents',
+        'per:siblings',
+        'per:other_family',
+        'per:alternate_names'
+    },
+    'org:org': {
+        'org:alternate_names',
+        'org:members',
+        'org:member_of',
+        'org:parents',
+        'org:subsidiaries',
+    },
+
+}
+
 NO_RELATION = "no_relation"
 
 def parse_arguments():
@@ -77,6 +215,57 @@ def score(key, prediction, verbose=False):
             sys.stdout.write("  #: %d" % gold)
             sys.stdout.write("\n")
         print("")
+
+    if verbose:
+        print('Per-category statistics:')
+        relations = gold_by_relation.keys()
+        longest_relation = 0
+        for relation in sorted(relations):
+            longest_relation = max(len(relation), longest_relation)
+        category2records = {}
+        for category in category_maps:
+            category2records[category] = {'correct_by_relation': [], 'guessed_by_relation': [], 'gold_by_relation': []}
+        for relation in relations:
+            for category, category_relations in category_maps.items():
+                if relation in category_relations:
+                    correct = correct_by_relation[relation]
+                    guessed = guessed_by_relation[relation]
+                    gold = gold_by_relation[relation]
+                    category2records[category]['correct_by_relation'].append(correct)
+                    category2records[category]['guessed_by_relation'].append(guessed)
+                    category2records[category]['gold_by_relation'].append(gold)
+        category_f1s = {}
+        for category, records in category2records.items():
+            correct_by_relation = sum(records['correct_by_relation'])
+            guessed_by_relation = sum(records['guessed_by_relation'])
+            gold_by_relation = sum(records['gold_by_relation'])
+            precision = 1.0
+            if guessed_by_relation > 0:
+                precision = float(correct_by_relation) / float(guessed_by_relation)
+            recall = 0
+            if gold_by_relation > 0:
+                recall = float(correct_by_relation) / float(gold_by_relation)
+            f1 = 0
+            if precision + recall > 0:
+                f1 = 2.0 * precision * recall / (precision + recall)
+
+            category_f1s[category] = f1
+
+            sys.stdout.write(("{:<" + str(longest_relation) + "}").format(category))
+            sys.stdout.write("  P: ")
+            if precision < 0.1: sys.stdout.write(' ')
+            if precision < 1.0: sys.stdout.write(' ')
+            sys.stdout.write("{:.2%}".format(precision))
+            sys.stdout.write("  R: ")
+            if recall < 0.1: sys.stdout.write(' ')
+            if recall < 1.0: sys.stdout.write(' ')
+            sys.stdout.write("{:.2%}".format(recall))
+            sys.stdout.write("  F1: ")
+            if f1 < 0.1: sys.stdout.write(' ')
+            if f1 < 1.0: sys.stdout.write(' ')
+            sys.stdout.write("{:.2%}".format(f1))
+            sys.stdout.write("  #: %d" % gold_by_relation)
+            sys.stdout.write("\n")
 
     # Print the aggregate score
     if verbose:
