@@ -264,7 +264,7 @@ def score(key, prediction, verbose=False):
             if f1 < 0.1: sys.stdout.write(' ')
             if f1 < 1.0: sys.stdout.write(' ')
             sys.stdout.write("{:.2%}".format(f1))
-            sys.stdout.write("  #: %d" % gold_by_relation)
+            sys.stdout.write("  #: %d" % gold_by_relation_)
             sys.stdout.write("\n")
 
     # Print the aggregate score
