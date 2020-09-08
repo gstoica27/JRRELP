@@ -29,6 +29,9 @@ class DataLoader(object):
 
         with open(filename) as infile:
             data = json.load(infile)
+        if opt['id_load_file'] is not None:
+            ids = np.loadtxt(opt['id_load_file'], dtype=np.str)
+            data = [d for d in data if d['id'] in ids]
         self.raw_data = data
         data = self.preprocess(data, vocab, opt)
 

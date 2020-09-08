@@ -2,6 +2,7 @@ data_dir: '/home/scratch/gis/datasets/tacred/data/json'
 vocab_dir: '/home/scratch/gis/datasets/tacred/data/vocab'
 test_save_dir: '/home/scratch/gis/tacred_test_performances'
 save_dir: '/home/scratch/gis/saved_models'
+id_load_path:
 emb_dim: 300  # Word embedding dimension.
 ner_dim: 30 # NER embedding dimension.
 pos_dim: 30 # POS embedding dimension.

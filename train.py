@@ -151,7 +151,7 @@ for epoch in range(1, opt['num_epoch']+1):
         predictions += preds
         dev_loss += loss
     predictions = [id2label[p] for p in predictions]
-    current_dev_metrics = scorer.score(dev_batch.gold(), predictions)
+    current_dev_metrics, _ = scorer.score(dev_batch.gold(), predictions)
     dev_f1 = current_dev_metrics['f1']
 
     train_loss = train_loss / train_batch.num_examples * opt['batch_size'] # avg loss per batch
@@ -170,7 +170,7 @@ for epoch in range(1, opt['num_epoch']+1):
         test_loss += loss
         test_preds += probs
     predictions = [id2label[p] for p in predictions]
-    test_metrics_at_current_dev = scorer.score(test_batch.gold(), predictions)
+    test_metrics_at_current_dev, _ = scorer.score(test_batch.gold(), predictions)
     test_f1 = test_metrics_at_current_dev['f1']
 
     train_loss = train_loss / train_batch.num_examples * opt['batch_size']  # avg loss per batch

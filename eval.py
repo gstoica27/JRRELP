@@ -127,7 +127,18 @@ for i, b in enumerate(batch):
     predictions += preds
     all_probs += probs
 predictions = [id2label[p] for p in predictions]
-scorer.score(batch.gold(), predictions, verbose=True)
+_, indices = scorer.score(batch.gold(), predictions, verbose=True)
+
+wrong_indices = indices['wrong_indices']
+correct_indices = indices['correct_indices']
+wrong_data = [d['id'] for d in np.array(batch.raw_data)[wrong_indices]]
+correct_data = [d['id'] for d in np.array(batch.raw_data)[correct_indices]]
+print('Num Correct: {} | Num Wrong: {}'.format(len(correct_data), len(wrong_data)))
+save_dir = os.path.join(cfg_dict['test_save_dir'], cfg_dict['id'])
+os.makedirs(save_dir, exist_ok=True)
+print('saving to: {}'.format(save_dir))
+np.savetxt(os.path.join(save_dir, 'correct_ids.txt'), correct_data, fmt='%s')
+np.savetxt(os.path.join(save_dir, 'correct_ids.txt'), wrong_data, fmt='%s')
 
 # save probability scores
 if len(args.out) > 0:
