@@ -105,7 +105,7 @@ print(model_load_dir)
 model_file = os.path.join(model_load_dir, 'best_model.pt')
 print("Loading model from {}".format(model_file))
 opt = torch_utils.load_config(model_file)
-
+opt['id_load_file'] = None
 # load vocab
 vocab_file = opt['vocab_dir'] + '/vocab.pkl'
 vocab = Vocab(vocab_file, load=True)
