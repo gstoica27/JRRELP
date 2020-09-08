@@ -100,6 +100,7 @@ elif opt['cuda']:
 
 # load opt
 model_load_dir = opt['save_dir'] + '/' + opt['id']
+model_load_dir = '/zfsauton3/home/gis/research/original_palstm/tacred-relation/saved_models/00'
 print(model_load_dir)
 model_file = os.path.join(model_load_dir, 'best_model.pt')
 print("Loading model from {}".format(model_file))
@@ -135,6 +136,7 @@ wrong_data = [d['id'] for d in np.array(batch.raw_data)[wrong_indices]]
 correct_data = [d['id'] for d in np.array(batch.raw_data)[correct_indices]]
 print('Num Correct: {} | Num Wrong: {}'.format(len(correct_data), len(wrong_data)))
 save_dir = os.path.join(cfg_dict['test_save_dir'], cfg_dict['id'])
+save_dir = os.path.join(cfg_dict['test_save_dir'], '00')
 os.makedirs(save_dir, exist_ok=True)
 print('saving to: {}'.format(save_dir))
 np.savetxt(os.path.join(save_dir, 'correct_ids.txt'), correct_data, fmt='%s')
