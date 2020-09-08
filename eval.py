@@ -99,20 +99,23 @@ elif opt['cuda']:
     torch.cuda.manual_seed(opt['seed'])
 
 # load opt
-model_load_dir = opt['save_dir'] + '/' + opt['id']
+# model_load_dir = opt['save_dir'] + '/' + opt['id']
 model_load_dir = '/zfsauton3/home/gis/research/original_palstm/tacred-relation/saved_models/00'
 print(model_load_dir)
 model_file = os.path.join(model_load_dir, 'best_model.pt')
 print("Loading model from {}".format(model_file))
 opt = torch_utils.load_config(model_file)
-model = RelationModel(opt)
-model.load(model_file)
+
 # load vocab
 vocab_file = opt['vocab_dir'] + '/vocab.pkl'
 vocab = Vocab(vocab_file, load=True)
 assert opt['vocab_size'] == vocab.size, "Vocab size must match that in the saved model."
 # Add subject/object indices
 opt['object_indices'] = vocab.obj_idxs
+# Init Model
+model = RelationModel(opt)
+model.load(model_file)
+
 # load data
 data_file = opt['data_dir'] +f'/test.json'
 print("Loading data from {} with batch size {}...".format(data_file, opt['batch_size']))
@@ -135,7 +138,7 @@ correct_indices = indices['correct_indices']
 wrong_data = [d['id'] for d in np.array(batch.raw_data)[wrong_indices]]
 correct_data = [d['id'] for d in np.array(batch.raw_data)[correct_indices]]
 print('Num Correct: {} | Num Wrong: {}'.format(len(correct_data), len(wrong_data)))
-save_dir = os.path.join(cfg_dict['test_save_dir'], cfg_dict['id'])
+# save_dir = os.path.join(cfg_dict['test_save_dir'], cfg_dict['id'])
 save_dir = os.path.join(cfg_dict['test_save_dir'], '00')
 os.makedirs(save_dir, exist_ok=True)
 print('saving to: {}'.format(save_dir))
