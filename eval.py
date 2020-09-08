@@ -29,13 +29,13 @@ def generate_param_list(params, cfg_dict, prefix=''):
 
 def create_model_name(opt):
     top_level_name = 'TACRED'
-    approach_type = 'PALSTM-JRRELP' if opt['link_prediction'] is not None else 'PALSTM'
+    approach_type = 'PALSTM-JRRELP' if opt.get('link_prediction', None) is not None else 'PALSTM'
     main_name = '{}-{}-{}-{}'.format(
         opt['optim'], opt['lr'], opt['lr_decay'],
         opt['seed']
     )
-    if opt['link_prediction'] is not None:
-        kglp_task_cfg = opt['link_prediction']
+    if opt.get('link_prediction', None) is not None:
+        kglp_task_cfg = opt.get('link_prediction', None)
         kglp_task = '{}-{}-{}-{}-{}-{}'.format(
             kglp_task_cfg['label_smoothing'],
             kglp_task_cfg['lambda'],
@@ -44,7 +44,7 @@ def create_model_name(opt):
             kglp_task_cfg['without_verification'],
             kglp_task_cfg['without_no_relation']
         )
-        lp_cfg = opt['link_prediction']['model']
+        lp_cfg = opt.get('link_prediction', None)['model']
         kglp_name = '{}-{}-{}-{}-{}-{}-{}'.format(
             lp_cfg['input_drop'], lp_cfg['hidden_drop'],
             lp_cfg['feat_drop'], lp_cfg['rel_emb_dim'],
@@ -78,10 +78,10 @@ def add_kg_model_params(cfg_dict, cwd):
     link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
     with open(link_prediction_cfg_file, 'r') as handle:
         link_prediction_config = yaml.load(handle)
-    link_prediction_model = cfg_dict['link_prediction']['model']
+    link_prediction_model = cfg_dict.get('link_prediction', None)['model']
     params = link_prediction_config[link_prediction_model]
     params['name'] = link_prediction_model
-    params['freeze_network'] = cfg_dict['link_prediction']['freeze_network']
+    params['freeze_network'] = cfg_dict.get('link_prediction', None)['freeze_network']
     return params
 
 with open(config_path, 'r') as file:

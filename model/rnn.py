@@ -66,10 +66,10 @@ class RelationModel(object):
         logits, _, supplemental_losses = self.model(inputs)
         loss = self.criterion(logits, labels)
 
-        if self.opt['link_prediction'] is not None:
+        if self.opt.get('link_prediction', None) is not None:
             kglp_loss = supplemental_losses['kglp']
             verification_loss = supplemental_losses['verification']
-            loss += (kglp_loss + verification_loss) * self.opt['link_prediction']['lambda']
+            loss += (kglp_loss + verification_loss) * self.opt.get('link_prediction', None)['lambda']
             kglp_loss_value = kglp_loss.data.item()
             verification_loss_value = verification_loss.data.item()
             losses.update({'kglp': kglp_loss_value, 'verification': verification_loss_value})
@@ -153,8 +153,8 @@ class PositionAwareRNN(nn.Module):
             self.pe_emb = nn.Embedding(constant.MAX_LEN * 2 + 1, opt['pe_dim'])
 
         # LP Model
-        if opt['link_prediction'] is not None:
-            link_prediction_cfg = opt['link_prediction']['model']
+        if opt.get('link_prediction', None) is not None:
+            link_prediction_cfg = opt.get('link_prediction', None)['model']
             self.rel_emb = nn.Embedding(opt['num_relations'], link_prediction_cfg['rel_emb_dim'])
             self.register_parameter('rel_bias', torch.nn.Parameter(torch.zeros((opt['num_relations']))))
             self.object_indices = torch.from_numpy(np.array(self.object_indices))
@@ -239,7 +239,7 @@ class PositionAwareRNN(nn.Module):
         else:
             final_hidden = hidden
 
-        if self.opt['link_prediction'] is not None:
+        if self.opt.get('link_prediction', None) is not None:
             subjects, relations, labels = kg_inputs
             # object indices to compare against
             object_embs = self.emb(self.object_indices)
@@ -252,12 +252,12 @@ class PositionAwareRNN(nn.Module):
             # Compute each loss term
             relation_kg_loss = self.lp_model.loss(kglp_preds, labels)
             sentence_kg_loss = self.lp_model.loss(verification_preds, labels)
-            if self.opt['link_prediction']['without_no_relation']:
+            if self.opt.get('link_prediction', None)['without_no_relation']:
                 positive_relations = torch.eq(labels, constant.NO_RELATION_ID).eq(0).type(torch.float32)
                 relation_kg_loss = relation_kg_loss * positive_relations
                 sentence_kg_loss = sentence_kg_loss * positive_relations
-            kglp_loss = relation_kg_loss.mean() * (1 - self.opt['link_prediction']['without_observed'])
-            verification_loss = sentence_kg_loss.mean() * (1 - self.opt['link_prediction']['without_verification'])
+            kglp_loss = relation_kg_loss.mean() * (1 - self.opt.get('link_prediction', None)['without_observed'])
+            verification_loss = sentence_kg_loss.mean() * (1 - self.opt.get('link_prediction', None)['without_verification'])
             supplemental_losses = {'kglp':kglp_loss, 'verification': verification_loss}
             # Remove gradient from flowing to the relation embeddings in the main loss calculation
             logits = torch.mm(final_hidden, self.rel_emb.weight.transpose(1, 0).detach())
