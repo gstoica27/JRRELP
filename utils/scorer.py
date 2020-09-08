@@ -143,29 +143,89 @@ category_maps = {
         'org:parents',
         'org:subsidiaries',
     },
-
+    'org:members': {
+        'org:members',
+        'org:subsidiaries'
+    },
+    'org:member_of': {
+        'org:member_of',
+        'org:parents'
+    },
+    'per:residence': {
+        'per:countries_of_residence',
+        'per:cities_of_residence',
+        'per:stateorprovinces_of_residence'
+    },
+    'per:death': {
+        'per:city_of_death',
+        'per:city_of_birth',
+        'per:stateorprovince_of_death',
+    },
+    'per:birth': {
+        'per:stateorprovince_of_birth',
+        'per:country_of_death',
+        'per:country_of_birth',
+    },
+    'org:loc': {
+        'org:country_of_headquarters',
+        'org:city_of_headquarters',
+        'org:stateorprovince_of_headquarters',
+        'org:other_location_of_headquarters',
+    },
+    'rest': {
+        'org:alternate_names',
+        'org:dissolved',
+        'org:founded',
+        'org:founded_by',
+        'org:number_of_employees/members',
+        'org:political/religious_affiliation',
+        'org:shareholders',
+        'org:top_members/employees',
+        'org:website',
+        'per:age',
+        'per:alternate_names',
+        'per:cause_of_death',
+        'per:charges',
+        'per:children',
+        'per:date_of_birth',
+        'per:date_of_death',
+        'per:employee_of',
+        'per:identity',
+        'per:origin',
+        'per:other_family',
+        'per:parents',
+        'per:religion',
+        'per:schools_attended',
+        'per:siblings',
+        'per:spouse',
+        'per:title'
+    }
 }
 
 NO_RELATION = "no_relation"
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Score a prediction file using the gold labels.')
     parser.add_argument('gold_file', help='The gold relation file; one relation per line')
-    parser.add_argument('pred_file', help='A prediction file; one relation per line, in the same order as the gold file.')
+    parser.add_argument('pred_file',
+                        help='A prediction file; one relation per line, in the same order as the gold file.')
     args = parser.parse_args()
     return args
+
 
 def score(key, prediction, verbose=False):
     correct_by_relation = Counter()
     guessed_by_relation = Counter()
-    gold_by_relation    = Counter()
+    gold_by_relation = Counter()
     misclassified_indices = []
     correct_indices = []
+    wrong_predictions = []
     # Loop over the data to compute a score
     for row in range(len(key)):
         gold = key[row]
         guess = prediction[row]
-         
+
         if gold == NO_RELATION and guess == NO_RELATION:
             pass
         elif gold == NO_RELATION and guess != NO_RELATION:
@@ -181,6 +241,7 @@ def score(key, prediction, verbose=False):
             correct_indices.append(row)
         else:
             misclassified_indices.append(row)
+            wrong_predictions.append(guess)
 
     # Print verbose information
     if verbose:
@@ -193,7 +254,7 @@ def score(key, prediction, verbose=False):
             # (compute the score)
             correct = correct_by_relation[relation]
             guessed = guessed_by_relation[relation]
-            gold    = gold_by_relation[relation]
+            gold = gold_by_relation[relation]
             prec = 1.0
             if guessed > 0:
                 prec = float(correct) / float(guessed)
@@ -277,18 +338,20 @@ def score(key, prediction, verbose=False):
         print("Final Score:")
     prec_micro = 1.0
     if sum(guessed_by_relation.values()) > 0:
-        prec_micro   = float(sum(correct_by_relation.values())) / float(sum(guessed_by_relation.values()))
+        prec_micro = float(sum(correct_by_relation.values())) / float(sum(guessed_by_relation.values()))
     recall_micro = 0.0
     if sum(gold_by_relation.values()) > 0:
         recall_micro = float(sum(correct_by_relation.values())) / float(sum(gold_by_relation.values()))
     f1_micro = 0.0
     if prec_micro + recall_micro > 0.0:
         f1_micro = 2.0 * prec_micro * recall_micro / (prec_micro + recall_micro)
-    print( "Precision (micro): {:.3%}".format(prec_micro) )
-    print( "   Recall (micro): {:.3%}".format(recall_micro) )
-    print( "       F1 (micro): {:.3%}".format(f1_micro) )
+    print("Precision (micro): {:.3%}".format(prec_micro))
+    print("   Recall (micro): {:.3%}".format(recall_micro))
+    print("       F1 (micro): {:.3%}".format(f1_micro))
     return {'f1': f1_micro, 'precision': prec_micro, 'recall': recall_micro}, \
-           {'wrong_indices': misclassified_indices, 'correct_indices': correct_indices}
+           {'wrong_indices': misclassified_indices, 'correct_indices': correct_indices,
+            'wrong_predictions': wrong_predictions}
+
 
 if __name__ == "__main__":
     # Parse the arguments from stdin
@@ -298,9 +361,10 @@ if __name__ == "__main__":
 
     # Check that the lengths match
     if len(prediction) != len(key):
-        print("Gold and prediction file must have same number of elements: %d in gold vs %d in prediction" % (len(key), len(prediction)))
+        print("Gold and prediction file must have same number of elements: %d in gold vs %d in prediction" % (
+        len(key), len(prediction)))
         exit(1)
-    
+
     # Score the predictions
     score(key, prediction, verbose=True)
 

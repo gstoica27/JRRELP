@@ -131,19 +131,28 @@ for i, b in enumerate(batch):
     predictions += preds
     all_probs += probs
 predictions = [id2label[p] for p in predictions]
-_, indices = scorer.score(batch.gold(), predictions, verbose=True)
+metrics, other_data = scorer.score(batch.gold(), predictions, verbose=True)
+p = metrics['precision']
+r = metrics['recall']
+f1 = metrics['f1']
 
-wrong_indices = indices['wrong_indices']
-correct_indices = indices['correct_indices']
-wrong_data = [d['id'] for d in np.array(batch.raw_data)[wrong_indices]]
-correct_data = [d['id'] for d in np.array(batch.raw_data)[correct_indices]]
-print('Num Correct: {} | Num Wrong: {}'.format(len(correct_data), len(wrong_data)))
-# save_dir = os.path.join(cfg_dict['test_save_dir'], cfg_dict['id'])
-save_dir = os.path.join(cfg_dict['test_save_dir'], '00')
-os.makedirs(save_dir, exist_ok=True)
-print('saving to: {}'.format(save_dir))
-np.savetxt(os.path.join(save_dir, 'correct_ids.txt'), correct_data, fmt='%s')
-np.savetxt(os.path.join(save_dir, 'correct_ids.txt'), wrong_data, fmt='%s')
+wrong_indices = other_data['wrong_indices']
+correct_indices = other_data['correct_indices']
+wrong_predictions = other_data['wrong_predictions']
+
+raw_data = np.array(batch.raw_data)
+wrong_data = raw_data[wrong_indices]
+correct_data = raw_data[correct_indices]
+
+wrong_ids = [d['id'] for d in wrong_data]
+correct_ids = [d['id'] for d in correct_data]
+
+data_save_dir = os.path.join(opt['test_save_dir'], 'palstm_tacred')
+os.makedirs(data_save_dir, exist_ok=True)
+print('saving to: {}'.format(data_save_dir))
+np.savetxt(os.path.join(data_save_dir, 'correct_ids.txt'), correct_ids, fmt='%s')
+np.savetxt(os.path.join(data_save_dir, 'wrong_ids.txt'), wrong_ids, fmt='%s')
+np.savetxt(os.path.join(data_save_dir, 'wrong_predictions.txt'), wrong_predictions, fmt='%s')
 
 # save probability scores
 if len(args.out) > 0:
