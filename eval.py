@@ -16,7 +16,7 @@ from utils import torch_utils, scorer, constant, helper
 from utils.vocab import Vocab
 import yaml
 import numpy as np
-
+import json
 
 def generate_param_list(params, cfg_dict, prefix=''):
     param_list = prefix
@@ -153,6 +153,9 @@ print('saving to: {}'.format(data_save_dir))
 np.savetxt(os.path.join(data_save_dir, 'correct_ids.txt'), correct_ids, fmt='%s')
 np.savetxt(os.path.join(data_save_dir, 'wrong_ids.txt'), wrong_ids, fmt='%s')
 np.savetxt(os.path.join(data_save_dir, 'wrong_predictions.txt'), wrong_predictions, fmt='%s')
+
+id2preds = {d['id']: pred for d, pred in zip(raw_data, predictions)}
+json.dump(id2preds, open(os.path.join(data_save_dir, 'id2preds.json')))
 
 # save probability scores
 if len(args.out) > 0:
