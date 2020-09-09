@@ -155,7 +155,7 @@ np.savetxt(os.path.join(data_save_dir, 'wrong_ids.txt'), wrong_ids, fmt='%s')
 np.savetxt(os.path.join(data_save_dir, 'wrong_predictions.txt'), wrong_predictions, fmt='%s')
 
 id2preds = {d['id']: pred for d, pred in zip(raw_data, predictions)}
-json.dump(id2preds, open(os.path.join(data_save_dir, 'id2preds.json')))
+json.dump(id2preds, open(os.path.join(data_save_dir, 'id2preds.json'), 'w'))
 
 # save probability scores
 if len(args.out) > 0:
