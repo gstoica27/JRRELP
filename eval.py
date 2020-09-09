@@ -147,7 +147,7 @@ correct_data = raw_data[correct_indices]
 wrong_ids = [d['id'] for d in wrong_data]
 correct_ids = [d['id'] for d in correct_data]
 
-data_save_dir = os.path.join(opt['test_save_dir'], 'palstm_tacred')
+data_save_dir = os.path.join(os.getcwd(), 'palstm_tacred')
 os.makedirs(data_save_dir, exist_ok=True)
 print('saving to: {}'.format(data_save_dir))
 np.savetxt(os.path.join(data_save_dir, 'correct_ids.txt'), correct_ids, fmt='%s')
