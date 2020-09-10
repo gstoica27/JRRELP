@@ -1,0 +1,167 @@
+% In this section, we describe our method, its learning tasks, and the notation used throughout the paper.
+
+% Before describing our proposed method, we present our notation, and clear definitions of the relevant learning tasks and models.
+% Before describing our proposed method, we introduce the notation and tasks 
+
+Before presenting our method, we introduce the notation used throughout this paper, and describe the relevant learning tasks.
+% \subsection{Notation}
+% \label{sec:data}
+% Our main motivation and focus for this work is to perform well in the RE task.
+% Therefore, our training data $\mathcal{D}$ contains a collection of sentences.
+Let $\mathcal{D}$ describe a dataset that contains a collection of sentences.
+Let $X=[x_1, x_2, \ldots x_n]$ denote a sentence, where $x_i$ represents a one-hot encoding for the $i^{\text{th}}$ sentence token (i.e., word).
+Each sentence contains a subject $s = [x_{s^{\textrm{start}}}, x_{s^{\textrm{start}} + 1}, \hdots, x_{s^{\textrm{end}}}]$, that is defined as a contiguous span $(s^{\textrm{start}}, s^{\textrm{end}})$ over the sentence, and an object $o = [o_{o^{\textrm{start}}}, o_{o^{\textrm{start}} + 1}, \hdots, o_{o^{\textrm{end}}}]$, that is similarly defined.
+Subjects and objects are summarized by their {\em types}, termed $s^{\textrm{type}}$ and $o^{\textrm{type}}$, respectively.
+If not already given, these can be extracted by widely used parsing frameworks such as \citep{stanfordcorenlp}.
+% A {\em type} is also provided for each such subject/object span and termed $s^{\textrm{type}}$ and $o^{\textrm{type}}$ respectively.
+For example, consider the sentence ``\texttt{\textcolor{our_blue}{John Doe} lives in \textcolor{our_red}{Miami}}'', where the subject is shown in \textcolor{our_blue}{blue} color and the object in \textcolor{our_red}{red} color.
+In this case, the subject may be tagged as having type \textcolor{our_blue}{\texttt{PERSON}} and the object may be tagged as having type \textcolor{our_red}{\texttt{CITY}}.
+Several methods \citep[e.g.,][]{palstm, cgcn, aggcn} employ {\em type-substitution} during data preprocessing: substituting subjects and objects in sentences with their corresponding types.
+% During data preprocessing , subjects and objects may be substituted with their corresponding types. 
+For instance, with type-substitution our example sentence becomes
+% For instance, the example sentence becomes
+``\texttt{\textcolor{our_blue}{SUBJECT-PERSON SUBJECT-PERSON} lives in \textcolor{our_red}{OBJECT-CITY}}.''
+% Following prior literature \citep{palstm, cgcn, aggcn}, we assume that sentences are preprocessed using type-substitution for the remainder of this paper.
+For ease of future explanation, we assume that sentences are preprocessed using type-substitution for the remainder of this paper.
+% During data preprocessing, all subject and object tokens in sentences are substituted with their corresponding types.
+% For the aforementioned example, the sentence after preprocessing becomes ``\texttt{\textcolor{our_blue}{SUBJECT-PERSON SUBJECT-PERSON} lives in \textcolor{our_red}{OBJECT-CITY}}.''
+% We refer to this as {\em type-substitution}.
+% We refer to this preprocessing step as {\em type-substitution} and note that it is a relatively standard preprocessing step for this task that is used by \citet{palstm}, \citet{cgcn}, and \citet{aggcn}.
+Each sentence may contain additional structural features such as part-of-speech (POS) tags, named-entity-recognition (NER) tags, and a dependency parse. Analogous to extracting entity types, these can be generated from parsing frameworks. 
+We denote all such sentence features as members of a set $C$.
+% Additionally, each sentence may contain more structural information features such as part-of-speech (POS) and named entity recognition (NER) tags, as well as a dependency parse.
+% We shall denote all such features associated with a sentence $X$ as a set $C$.
+Finally, each sentence contains a relation, $r$, between its subject and object. 
+This may either describe their lack of connection (via a special \texttt{no-relation} token), or an existing one.
+% Finally, for each sentence we also have an associated relation $r$ that the sentence describes.
+For instance, the relation between \textcolor{our_blue}{\texttt{John Doe}} and \textcolor{our_red}{\texttt{Miami}} in our example sentence would be \texttt{LivesIn}.
+% In the aforementioned example, the relation could be \texttt{livesIn}.
+In summary, $\mathcal{D}$ is a set of $N$ tuples: $\mathcal{D} = \{ ( X_i, C_i, s_i, o_i, s^{\textrm{type}}_i, o^{\textrm{type}}_i, r_i ) \}_{i=1}^N$, where $N$ is the number of sentences.
+
+\subsection{Relation Extraction}
+\label{sec:re-task}
+
+Relation extraction (RE) uses $X$, $C$, $s$, and $o$ from $\mathcal{D}$ to infer the relation $r$ between $s$ and $o$.
+Many successful RE methods---including the current state-of-the-art \citep{bert-em}---involve learning vector embeddings for each component.
+% Most successful models that have been proposed to tackle this task---including the current state-of-the-art \citep{bert-em}---involve learning vector embeddings for each component.
+Specifically, let $N_v$, $N_r $, and $N_c$ denote the vocabulary size for sentence tokens, the number of unique relations, and the number of unique attributes in $C$, computed over the whole training dataset.
+Additionally, let $D_v$, $D_r $, and $D_c$ denote the corresponding embedding sizes.
+We define $\bm{V}\in\mathbb{R}^{D_v\times N_v}$, $\bm{R}\in\mathbb{R}^{D_r\times N_r}$, and $\bm{A}\in\mathbb{R}^{D_c\times N_c}$ as the vocabulary, relation, and attribute embedding matrices, respectively.
+Note that $\bm{V}, \bm{R}$, and $\bm{A}$ are learnable model parameters.
+Given a sentence, a subject, an object, and its attributes, their respective embedding representations are defined as:
+$\bm{X} = \bm{V}X \in \smash{\mathbb{R}^{D_v \times n}}$,
+$\bm{C} = \bm{A}C \in \smash{\mathbb{R}^{D_c\times c}}$,
+$\bm{s} = \bm{V}s \in \smash{\mathbb{R}^{D_v \times (s^{\textrm{end}} - s^{\textrm{start}} + 1)}}$, and
+$\bm{o} = \bm{V}o \in \smash{\mathbb{R}^{D_v \times (o^{\textrm{end}} - o^{\textrm{start}} + 1)}}$,
+where $n$ is the number of tokens in $X$ and $c$ is the number of attributes in $C$.
+Similarly, we define the embedded relation as $\bm{r} = \bm{R}r \in \mathbb{R}^{D_r}$.
+Given these embeddings, most successful RE models \citep[e.g.,][]{palstm,cgcn,aggcn,tre,bert-em} can be formulated as instances of the following model:
+
+\begin{align}
+    & \bm{X} = \bm{V}X,\;
+      \bm{C} = \bm{A}C,\;
+      \bm{s} = \bm{V}s,\;
+      \bm{o} = \bm{V}o \\
+    %   ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{EMBEDDING}} \\
+    & \hat{\bm{r}} = f(\bm{X}, \bm{C}, \bm{s}, \bm{o}) \\
+    % ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{PREDICTION}} \\
+    & p(r \mid \hat{\bm{r}}) = \textrm{Softmax}(\bm{R}\hat{\bm{r}} + \bm{b})
+    % ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{PROBABILITY ESTIMATION}}
+    \label{eq:re-model}
+\end{align}
+where $\hat{\bm{r}}$ is the inferred relation representation from a prediction model $f$.
+% A probability distribution over relations is constructed by applying the ``Softmax'' function over the sum of the dot-product between $\hat{\bm{r}}$ and the relation embeddings $\bm{R}$, and a learnable bias term $\bm{b} \in \mathbb{R}^{N_r}$.
+To demonstrate how multiple RE methods fit under this formulation, we briefly describe the three baseline models used in our experiments.
+% In order to demonstrate how multiple RE methods fit under this formulation, we now provide a brief description of the two baseline methods used in our experiments.
+
+\textbf{PA-LSTM.}
+This model was proposed by \citet{palstm}, and centers around formulating $f$ as the combination of a one-directional long short-term memory (LSTM) network, and a custom position-aware attention mechanism.
+The sentence attributes it uses are POS and NER tags, as well as SO and OO tags representing the positional offset of each token from the subject and the object respectively. The method first applies the LSTM over the concatenated sentence, POS tag, and NER tag embeddings. A relation $\hat{\bm{r}}$ is then predicted by attending the LSTM outputs with a custom position-aware attention mechanism using the SO and OO tag embeddings.
+% For further details, we refer readers to the work of \cite{palstm}.
+% Under our abstract formulation, the PA-LSTM model is defined by using a particular instance of the $f$ function that centers around a long short-term memory \citep[LSTM;][]{lstm} network.
+% Specifically, $f$ comprises of first concatenating the sentence and the POS and NER tag embeddings and then applying a one-directional LSTM network over the resulting sequences.
+% The outputs of this LSTM are attended over using the SO and OO tag embeddings, by applying a custom position-aware attention mechanism.
+% For further details, we refer readers to the work of \cite{palstm}.
+
+\textbf{C-GCN.}
+This model was proposed by \citet{cgcn}, and formulates $f$ as a graph-convolution network (GCN) over sentence dependency parse trees. It uses the same sentence attributes as PA-LSTM, and additionally the sentence dependency parse.
+Similar to PA-LSTM, the method first encodes a concatenation of the sentence, POS tag, and NER tag embeddings using a bi-directional LSTM network. The model then infers relations from these encodings by reasoning over the graph implied by a pruned version of the provided dependency tree parse.
+% and is one of the best performing RE models.
+% The sentence attributes it uses are POS tags, NER tags, and a sentence dependency parse, as well as SO and OO tags.
+% Similar to the PA-LSTM, the sentence embeddings are concatenated with their respective POS and NER tag embeddings, and encoded using bi-directional LSTM network.
+% However, in contrast to PA-LSTM, C-GCN infers relations from these encodings by reasoning over the graph implied by a pruned version of the provided dependency parse tree.
+In particular, C-GCN computes the least common ancestor (LCA) between $s$ and $o$, and uses the SO and OO tags to prune the tree around the LCA.
+Afterwards, C-GCN processes the sentence encodings using a graph convolution network (GCN) defined over the pruned dependency parse tree.
+The resulting representations are finally processed by a multi-layer perceptron to predict relations.
+% For further details, we refer readers to the work of \cite{cgcn}.
+
+\textbf{SpanBERT.} 
+This model was proposed by \citet{spanbert}, and is one of the current state-of-the-art (SoTA) relation extraction methods.
+SpanBERT differs form BERT in that it is pre-trained at the span-level.
+Moreover, the model randomly masks contiguous text spans instead of individual tokens, and adds a span-boundary objective that infers masked spans from surrounding data.
+In contrast to PALSTM and C-GCN, SpanBERT only takes into account the type-substituted sentence in its input to predict relations.
+We chose this model because it is one of the current state-of-the-art RE models and it is also open-sourced, allowing to easily integrate it in our experimental evaluation pipeline.
+
+Note that PA-LSTM, C-GCN, and SpanBERT are just three of many approaches supported by our abstract RE model formulation.
+For instance, more other transformer-based methods \citep{tre,bert-em,knowbert} can also be represented by using a different definition for $f$.
+
+\subsection{Knowledge Graph Link Prediction}
+\label{sec:kglp-task}
+
+The objective in knowledge graph link prediction (KGLP) is to infer a set of objects $O$ given a question, $(s, r, ?)$, in the form of a subject-relation-object triple, missing the object.
+Typically, $s$ and $o$ are nodes in a knowledge graph (KG), while $r$ represents a graph edge.
+Although $\mathcal{D}$ does not necessarily provide an explicit KG to reason over, it is possible to generate one by assigning unique identifiers for all subjects, relations, and objects, For instance, these may be $s^{\textrm{type}}$ and $o^{\textrm{type}}$ for subjects and objects respectively, and the relation itself.
+Although we assume that these identifiers are used 
+(as they are available in our training data $\mathcal{D}^{\textrm{train}}\subset \mathcal{D}$)
+for the remainder of this paper, we emphasize that our method is not limited to datasets with these characteristics. Instead our framework supports any $\mathcal{D}$ that specifies a mapping to a pre-existing KG, or where it is possible to define other unique identifiers. This is a very weak constraint.
+% unique subject, relation, and object identifiers, which is a very weak constraint. 
+% While our training data does not necessarily provide an explicit KG to reason over, it is possible to generate one by assigning unique identifiers for all subjects, relations, and objects.
+% For instance, these may be defined as their corresponding types.
+% Note that given subject and object types we can ``infer'' relation types as the pair of subject and object types that they appear with in the training data.
+% In what follows we assume that types are used as the identifiers (as they are available in our training data), but we want to emphasize that our method is not limited to datasets with these characteristics; it instead supports any dataset that specifies a mapping to a pre-existing KG, or where it is possible to define unique subject, relation, and object identifiers, which is a very weak constraint.
+Therefore, given a sentence with $s$, $o$, and $r$, we can use the subject and object types---$s^{\textrm{type}}$ and $o^{\textrm{type}}$, respectively---to form a KG whose edges are represented by each $r$ and nodes by each $s^{\textrm{type}}$ and $o^{\textrm{type}}$.
+% Furthermore, we can also include relations $\hat{r}$ predicted by an RE method as additional edges between $s^{\textrm{type}}$ and $o^{\textrm{type}}$.
+For ease of notation, we assume that each term is a one-hot encoding of the corresponding identifier.
+
+Due to the {\em type-substitution} preprocessing step described in Section~\ref{sec:background}, all types are included in the sentence token vocabulary.
+Thus, we obtain KG component embeddings by:
+% We can thus obtain embeddings similar to how we did for the RE task in Section~\ref{sec:re-task}: 
+$\bm{s^{\textrm{type}}} = \bm{V} s^{\textrm{type}} \in \smash{\mathbb{R}^{D_v}}$,
+$\bm{o^{\textrm{type}}} = \bm{V} o^{\textrm{type}} \in \smash{\mathbb{R}^{D_v}}$, and
+$\bm{r} = \bm{R} r \in \smash{\mathbb{R}^{D_r}}$.
+Multiple existing KGLP methods can be characterized in terms of the following abstract model:
+\begin{align}
+    & \bm{s^{\textrm{type}}} = \bm{V} s^{\textrm{type}},\;
+      \bm{r} = \bm{R} r \\
+    %   ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{EMBEDDING}} \\
+    & \bm{z} = g(\bm{s^{\textrm{type}}}, \bm{r}) \\
+    % ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{MERGE}} \\
+    & p(O \mid o^{\textrm{type}}, \bm{z}) = \sigma(\bm{V}_{o^{\textrm{type}}}\bm{z} + \bm{b})
+    % ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{PROBABILITY ESTIMATION}}
+    \label{eq:kglp-model}
+\end{align}
+where $\bm{z}$ is a merged representation of $\bm{s^{\textrm{type}}}$ and $\bm{r}$, and $\sigma$ is the Sigmoid activation function.
+% A probability distribution over possible objects is constructed by applying the ``Sigmoid'' function over the sum of the dot-product between $\bm{z}$ and the available object embeddings $\bm{V}_{o^{\textrm{type}}}$, and a learnable bias term $b \in \mathbb{R}^{N_o}$.
+Note that the set of available object embeddings $\bm{V}_{o^{\textrm{type}}} \subset \bm{V}$ contains {\em only} valid (in the type-checking sense) object embeddings.
+Previous work \citep{coper} shows that multiple KGLP methods fit under this formulation. 
+While certain early KGLP methods \citep{bordes2013translating, yang2015embedding, transr_ctranr, transd, trouillon2016complex} do not fit under this formulation, we note that they may be accommodated by a simple reformulation of Equation~\ref{eq:kglp-model} to their respective scoring terms.
+We now provide the definition of ConvE \citep{dettmers2018conve} under this formulation, because we use ConvE as our KGLP model in our experiments.
+While we acknowledge that ConvE is not the current state-of-the-art (SoTA) KGLP approach, it performs very well while using only a fraction of the parameters current SoTA \cite{coper, GAAT} methods require, thus making it more efficient.
+Moreover, ConvE is an example of a KGLP method which cannot be restructured to infer $r$ from $s$ and $o$, making it infeasible to use with any of the previous joint RE and KGLP frameworks \citep[e.g.,][]{lfds,weston-2013}.
+Note that, our results can only be further enhanced by using a stronger KGLP approach and thus this choice should not affect our conclusions.
+
+\textbf{ConvE.}
+ConvE is defined by using the following merge function in our abstract model formulation:
+\begin{align}
+    & g(\bm{s^{\textrm{type}}}, \bm{r}) = \text{Conv2D}(\text{Reshape}([s^{\textrm{type}}; \bm{r}])
+    % ,
+    % && \textsc{\sffamily\scriptsize\textcolor{gray}{MERGE}}
+\end{align}
+where ``Conv2D'' is a 2D convolution operation and ``$\text{Reshape}([s^{\textrm{type}}; \bm{r}])$'' first concatenates $s^{\textrm{type}}$ and $\bm{r}$ and then reshapes the resulting vector to be a square matrix, so that a convolution operation can be applied to it.
+% For further details, we refer readers to \cite{dettmers2018conve}.

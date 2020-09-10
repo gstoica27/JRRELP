@@ -1,0 +1,25 @@
+\begin{table}[!t]
+\centering
+\begin{adjustbox}{width=.8\columnwidth}
+\begin{tabular}{cccc}
+\toprule
+\multirow{2}{*}{\textbf{Models}} & \multicolumn{3}{c}{\textbf{Metrics (Masked-Mention)}} \\
+\cmidrule{2-4}
+& \texttt{F1} & \texttt{Precision} & \texttt{Recall} \\
+\midrule                
+PALSTM        & 76.6 & 75.2 & 78.0 \\
+PALSTM-JRRILP & 77.6 & 74.8 & 80.6 \\
+\midrule
+C-GCN        & 78.0 & 76.5 & 79.5 \\
+C-GCN-JRRILP & 78.5 & 76.9 & 80.3 \\
+\midrule
+SpanBERT        & 83.6 & 81.2 & 86.1 \\
+SpanBERT-JRRILP & 83.9 & 82.7 & 85.2 \\
+
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{
+Our results on SemEvak with mask-mentions as performed by \cite{palstm, cgcn}. \\}
+\label{tab:semeval_results}
+\end{table}

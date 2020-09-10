@@ -1,0 +1,97 @@
+We empirically evaluate the performance of JRRELP over three existing relation extraction baselines on two widely used supervised benchmark datasets.
+% Our primary impetuous is to measure the extent to which RE models benefit from KGLP tasks using {\em only} data available in the relation extraction dataset. Thus 
+Our primary objective is to measure the importance of a joint RE and KGLP objective in environments where learning over both tasks is restricted {\em only} to data available in a relation extraction dataset.
+This serves to simulate how effective JRRELP may be in real-world applications where a pre-existing KG is not available for a given RE task.
+% Thus, we evaluate JRRELP's ability to enhance baselines on RE problems.
+% We empirically evaluate the performance of JRRELP over two existing relation extraction baselines on two supervised benchmark datasets. 
+% Additionally, we perform an ablation study examining the impacts of JRRELP's loss terms in performance.
+Additionally, we perform an ablation study to examine the impact each part of JRRELP has on its overall performance.
+
+\textbf{Datasets.}
+We use the TACRED \cite{palstm} and SemEval 2010 Task 8 \cite{semeval} datasets for our experiments, which are commonly used in prior literature \citep[e.g.,][]{palstm, cgcn, aggcn, bert-em}.
+%  TACRED contains $42$ unique relations concerning connections between subject person and organization types to an array of unique objects. Moreover, the dataset provides useful sentence attributes such as token POS and NER, and dependency trees for RE methods to leverage in their fitting. 
+%  Additionally, an average token length of $36.4$ and roughly $4.5\times$ more negative data than SemEval 2010 Task 8 make TACRED a formidable and challenging benchmark dataset. 
+% While roughly $10\times$ smaller than TACRED, SemEval 2010 Task 8 is a popular benchmark dataset widely used in literature . 
+As mentioned in Section~\ref{sec:background}, for both datasets we utilize the following sentence attributes: NER tags, POS tags, subject/object offsets, and dependency tree structure.
+While TACRED already contains these attributes, SemEval does not.
+Thus, similar to \cite{palstm, cgcn}, we compute them using the Stanford CoreNLP parser \cite{stanfordcorenlp}.
+The parsed dataset can be found in our code repository at \url{http://anonymous}.
+For the KGLP task in JRRELP, we construct the KG by generating ($s^{\textrm{type}}$, $r$, $o^{\textrm{type}}$) triples automatically, for each training sentence.
+%  To account for potentially correct object types to questions that are not observed in our respective training datasets, we employ negative sampling consistent with prior work \citep{dettmers2018conve}
+We then ask questions of the form $(s^{\textrm{type}}, r, ?)$, where the answer belongs to a set of applicable objects $O$.
+%  The dataset contains nine directed relations, and an "other" relations describing the lack of linkage between a sentence subject and object. Sentences are comprised of untyped nominals with average token length of $19.4$.
+
+\textbf{Setup.}
+We perform our experiments on TACRED consistent with prior literature \citep{palstm, cgcn, aggcn}.
+We use the same type-substitution policy where we replace each subject and object in a sentence with their corresponding NER types.
+Additionally, we evaluate our models using their micro-averaged $\texttt{F1}$ scores.
+Finally. we report the test metrics of the model with the median validation $\texttt{F1}$ score over five independent runs.
+While SemEval 2010 Task 8 is traditionally evaluated without type-substitution, \citet{cgcn} point out that this causes models to overfit to specific entities, and does not test their ability to generalize to unseen data.
+They address this by masking these entities using their types.
+Therefore, to examine JRRELP's generalization capabilities, we perform the same type-substitution procedure, resulting in the SemEval (Masked-Mention) evaluations.
+Consistent with prior work  \citep{palstm,cgcn,aggcn,tre, bert-em}, we report the macro-averaged \texttt{F1} scores. 
+Because SemEval does not contain a validation set, we subsample $800$ examples from the training set to use as a validation set.
+% Thus, they incorporate a second evaluation method termed {\em masked-mention} where sentence subjects and objects are masked by their types. Because we are primarily concerned with JRRELP generalizability across different relation extraction datasets, we report our results based on the macro-averaged \texttt{F1} scores using the masked-mention evaluation method.
+\input{tables/dataset_statistics}
+% We then group these triples according to $(s^{\textrm{type}}, r, ?)$, where $?$ is replaced by the set of all observed $o^{\textrm{type}}$
+% We generate our knowledge graphs for the KGLP tasks from the associated entity NER types in each dataset. Specifically, we extract graph connections (triples) by: ($S$, $r$, $o$), where each component is as defined in Section \ref{sec:notation}. 
+% We then group these triples according to their subject and relation pairs, ($s$, $r$, ?) to identify the expected set, $O$, of objects to each. 
+% Note, we construct this graph solely on the respective training datasets, and do not use any unobserved information found in validation and test partitions. Additionally, we include ``no\_relation'' connections in our KG to maximize our KG coverage.
+
+% \subsection{Models}
+\textbf{Models.}
+We illustrate the generality of JRRELP by evaluating it on baselines from both classes of RE approaches:\footnote{Refer to Section~\ref{sec:related_work} for their definitions.}
+Two sequence-based models (PA-LSTM and SpanBERT), and a graph-based model (C-GCN). 
+We join all three baselines with the KGLP method ConvE \cite{dettmers2018conve}.
+However, we emphasize that the generality of JRRELP's objective supports many existing KGLP approaches.
+We distinguish between our baselines and their JRRELP variants by appending the suffix ``-JRRELP.''
+The model hyperparameters along with information on our search procedure, can be found at \url{https://anonymous}.
+% over the following model hyperparameters: (1) $\lambda_{\textrm{KGLP}}$ and $\lambda_{\textrm{COUPLING}}$ between $[0,1]$, and constrain both terms to be the same. (2) relation embedding size between $[10, 200]$, (3) 
+% model hyperparameters. Their specific configurations can be found in our code
+% We illustrate JRRELP's flexibility by extending both a sequence-based, and a graph-based method -- refer to Section \ref{sec:related_work} these definitions.
+% two relation extraction models across both method classes: sequence and graph-based approaches. 
+% Specifically, we choose PA-LSTM \cite{palstm} as our sequence-based method due to its simple yet effective architecture for the relation extraction problem. Additionally, we select the C-GCN \cite{cgcn} as our graph-based model. Additionally, while JRRELP supports many existing KGLP methods, we use ConvE \cite{dettmers2018conve} as our RE model benefactor. 
+% To ensure a fair comparison between the JRRELP extended variants of PA-LSTM and C-GCN, termed PA-LSTM-JRRELP and C-GCN-JRRELP respectively, we implement JRRELP and ConvE in each model repository and maintain their originally reported hyperparameters. 
+% In fact, all our JRRELP experiments are conducted using a hyperparemeter search of JRRELP specific parameters (save for the learning rate), thereby preserving both the RE and KGLP models in their original forms. We experiment with different framework configurations by performing a grid-search over relation representation sizes, and JRRELP joint tasks lambda values. Our specific configurations can be found in our code repository\footnote{www.anonymous.com}. 
+
+% \subsection{Results}
+\textbf{Results.}
+\input{tables/model_results}
+\input{LaTeX/tables/semeval_results}
+We report our overall performance results on TACRED in Table \ref{tab:results}. We observe that JRRELP consistently outperforms it's baseline variants over their \texttt{F1} and \texttt{Precision} metrics.
+In particular, we find that JRRELP improves its PALSTM and C-GCN performances by more than $1\%$ \texttt{F1}, and yields improvements of up to $4.1\%$ in \texttt{Precision}. 
+% In particular, we find that JRRELP improves its baseline performances by more than $1\%$ \texttt{F1} on TACRED, and yields improvements of up to $4.1\%$ in \texttt{Precision}. 
+Moreover, to the best of our knowledge C-CGCN-JRRELP achieves a new state-of-the-art in \texttt{Precision} by $1\%$.
+JRRELP also improves SpanBERT performance by $.6\%$ in \texttt{F1}, and $3.8\%$ in \texttt{Precision}, exhibiting a similar pattern as C-GCN. BERT-based models are significantly more expressive than their PALSTM and C-GCN counterparts, and are their pre-trained embeddings contain rich auxiliary information. These results suggest that incorporating KGLP through JRRELP can be extremely beneficial. 
+Interestingly, we also observe that improvements in \texttt{Precision} come at the cost of \texttt{Recall} decreases. We hypothesize that this is due to the combination of $\mathcal{L}_{\text{RE}}$ and $\mathcal{L}_{\text{COUPLING}}$, which doubly check whether inferred relations are suitable for both RE and KGLP objectives, encouraging more cautious yet informed predictions. 
+Furthermore, JRRELP bridges the performance gap between several methods, {\em without} altering their model capacities. This is because while JRRELP extends baselines by incorporating additional training objectives, it does not alter the inference stage.
+Notably, PA-LSTM-JRRELP matches the reported C-GCN performance, whose JRRELP variant matches TRE -- a significantly more expressive transformer-based approach. 
+These results suggest that the true performance ceiling of reported relation extraction approaches may be significantly higher than their reported results, and that JRRELP serves as a conduit towards achieving these performances.
+
+Table \ref{tab:semeval_results} shows our performance results on the SemEval data with masked-mentions as performed by \cite{palstm,cgcn}. Interestingly JRRELP improves PALSTM by trading \texttt{Precision} for \texttt{Recall} while the reverse is true for C-GCN. 
+All three JRRELP extensions improve their baseline \texttt{F1}-score performances. This illustrates the effectiveness of JRRELP's framework even within environments with little data.  
+% Moreover, while JRRELP improves PALSTM and C-GCN, SpanBERT-JRRELP only matches SpanBERT. We hypothesize that this primarily due to the SemEval's small size and limited information variety leverageable by KGLP.
+
+
+% Our overall performance results are reported in Table \ref{tab:results}. We observe that JRRELP consistently improves upon its baseline method F1 measures, despite the diversity of their approaches. Moreover, we note that despite C-GCN not being a SOTA method, its JRRELP variant establishes a new SOTA in Precision on TACRED to the best of our knowledge. Additionally, we find that JRRELP bridges the performance gap between several methods, without altering their evaluation capacities. For instance, PA-LSTM-JRRELP matches our best C-GCN F1 performance. Secondly, we observe that C-CGN-JRRELP matches the performance of TRE, a significantly more expressive transformer-based approach. These results suggest that the true performance ceiling of reported relation extraction approaches are {\em significantly} higher than their reporter performances, and that JRRELP serves as a conduit to achieving these performances.
+% Mention the type-substitution used in TACRED.
+% \input{tables/model_results}
+
+% \subsection{Ablation Experiments}
+\input{tables/ablation_tests}
+
+\textbf{Ablation Experiments.}
+To examine the effects of JRRELP's $\mathcal{L}_\text{KGLP}$ and $\mathcal{L}_{\text{COUPLING}}$ over the traditional relation extraction objective, $\mathcal{L}_{\text{RE}}$, we perform an ablation study with each term removed on methods from both RE approach classes: sequence-based (PALSTM) and graph-based (C-GCN). Table \ref{tab:ablation_tests} shows the \texttt{F1} results. Metrics for each dataset are reported in the same manner as previous results. 
+All ablation performances illustrate the importance of $\mathcal{L}_\text{KGLP}$ and $\mathcal{L}_{\text{COUPLING}}$ as part of JRRELP's framework, as their respective models are worse than the full JRRELP architecture; they exhibit performance drops up to $.8\%$ \texttt{F1} respectively. Moreover, we observe the largest performance drop from the removal of $\mathcal{L}_\text{COUPLING}$ -- which breaks JRRELP's cyclical parameter relationship. This highlights importance of establishing this relationship while training to achieve strong performance.
+
+
+% We further exmaine the effects of JRRELP under two conditions: (1) removing $\mathcal{L}_2$ from it's framework, and (2) removing ``no\_relation'' links from our KG. Our experiments were performed on TACRED using C-GCN-JRRELP pricinpally due to it's strongest overall performance among our two extension. Results from both studies are shown in Table \ref{tab:ablation_tests}. ``Control'' denotes our best performing unaltered C-GCN-JRRELP, while  ``Treatment'' describes the resultant best ablated model (following the established TACRED evaluation procedure for fair comparisons).
+
+% \paragraph{$\mathcal{L}_2$ removal.} Our first ablation study investigated the importance of the cyclic relationship of JRRELP's token vocabulary and relation embeddings. While the results in Table \ref{tab:ablation_tests} show that JRRELP still outperforms C-GCN without $\mathcal{L}_2$, its performance is substantially lower than the control. This illustrates the significance of establishing the cyclical connection between $\mathbf{V}$ and $\mathbf{R}$.
+
+
+
+
+% We further examine the effects of JRRELP under two conditions: (1) $\mathcal{L}_2$ removal and (2) constraining the generated KG. Our first ablation experiment concerned the importance of explicitly learning dataset relation representations jointly between both the RE and KGLP methods. Recall that $\mathcal{L}_2$ employs a KGLP approach over dataset relation embeddings and subjects. Our second ablation experiment investigated the importance of the type of information described by our generated KG. Specifically, our vanilla KGs contain all connections between subject and object types available in the training dataset. This includes links between subjects and objects that are defined as "no\_relation". Thus, the vanilla JRRELP jointly learns RE and KLGP tasks via a KG which contains both actual (positive) relations, and "no\_relation" (negative) links. To examine the importance of modeling a KG comprising of both positive and negative relations, we perform an ablation analysis where we remove all negative links from the KG. Table \ref{tab:ablation_tests} displays the F1 results from both experiments over the C-GCN-JRRELP method on TACRED. ``Control'' indicates our best performing JRRELP baseline, while ``Treatment'' denotes its ablated variant. 
+
+% From the results, we observe that jointly training the second task is critical to strong JRRELP performance. While even with the second task removed, JRRELP is able to outperform the unmodified CGCN approach, jointly learning with the second task improves performance by .4\% F1. Additionally, we find that constraining the KG over positive relations only can improve model performance. In fact it is with this ablation that we achieve our best performing method.

@@ -1,0 +1,458 @@
+@inproceedings{weston-2013,
+    title = "Connecting Language and Knowledge Bases with Embedding Models for Relation Extraction",
+    author = "Weston, Jason  and
+      Bordes, Antoine  and
+      Yakhnenko, Oksana  and
+      Usunier, Nicolas",
+    booktitle = "Proceedings of the 2013 Conference on Empirical Methods in Natural Language Processing",
+    month = oct,
+    year = "2013",
+    address = "Seattle, Washington, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D13-1136",
+    pages = "1366--1371",
+}
+
+@inproceedings{lfds,
+    title = "Label-Free Distant Supervision for Relation Extraction via Knowledge Graph Embedding",
+    author = "Wang, Guanying  and
+      Zhang, Wen  and
+      Wang, Ruoxu  and
+      Zhou, Yalin  and
+      Chen, Xi  and
+      Zhang, Wei  and
+      Zhu, Hai  and
+      Chen, Huajun",
+    booktitle = "Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing",
+    month = oct # "-" # nov,
+    year = "2018",
+    address = "Brussels, Belgium",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D18-1248",
+    doi = "10.18653/v1/D18-1248",
+    pages = "2246--2255",
+    abstract = "Distant supervision is an effective method to generate large scale labeled data for relation extraction, which assumes that if a pair of entities appears in some relation of a Knowledge Graph (KG), all sentences containing those entities in a large unlabeled corpus are then labeled with that relation to train a relation classifier. However, when the pair of entities has multiple relationships in the KG, this assumption may produce noisy relation labels. This paper proposes a label-free distant supervision method, which makes no use of the relation labels under this inadequate assumption, but only uses the prior knowledge derived from the KG to supervise the learning of the classifier directly and softly. Specifically, we make use of the type information and the translation law derived from typical KG embedding model to learn embeddings for certain sentence patterns. As the supervision signal is only determined by the two aligned entities, neither hard relation labels nor extra noise-reduction model for the bag of sentences is needed in this way. The experiments show that the approach performs well in current distant supervision dataset.",
+}
+
+@misc{peng2017,
+    title={Cross-Sentence N-ary Relation Extraction with Graph LSTMs},
+    author={Nanyun Peng and Hoifung Poon and Chris Quirk and Kristina Toutanova and Wen-tau Yih},
+    year={2017},
+    eprint={1708.03743},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+
+@article{treelstm,
+  author    = {Kai Sheng Tai and
+               Richard Socher and
+               Christopher D. Manning},
+  title     = {Improved Semantic Representations From Tree-Structured Long Short-Term
+               Memory Networks},
+  journal   = {CoRR},
+  volume    = {abs/1503.00075},
+  year      = {2015},
+  url       = {http://arxiv.org/abs/1503.00075},
+  archivePrefix = {arXiv},
+  eprint    = {1503.00075},
+  timestamp = {Mon, 13 Aug 2018 16:48:20 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/TaiSM15.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{cgcn,
+    title = "Graph Convolution over Pruned Dependency Trees Improves Relation Extraction",
+    author = "Zhang, Yuhao  and
+      Qi, Peng  and
+      Manning, Christopher D.",
+    booktitle = "Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing",
+    month = oct # "-" # nov,
+    year = "2018",
+    address = "Brussels, Belgium",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D18-1244",
+    doi = "10.18653/v1/D18-1244",
+    pages = "2205--2215",
+    abstract = "Dependency trees help relation extraction models capture long-range relations between words. However, existing dependency-based models either neglect crucial information (e.g., negation) by pruning the dependency trees too aggressively, or are computationally inefficient because it is difficult to parallelize over different tree structures. We propose an extension of graph convolutional networks that is tailored for relation extraction, which pools information over arbitrary dependency structures efficiently in parallel. To incorporate relevant information while maximally removing irrelevant content, we further apply a novel pruning strategy to the input trees by keeping words immediately around the shortest path between the two entities among which a relation might hold. The resulting model achieves state-of-the-art performance on the large-scale TACRED dataset, outperforming existing sequence and dependency-based neural models. We also show through detailed analysis that this model has complementary strengths to sequence models, and combining them further improves the state of the art.",
+}
+
+@article{aggcn,
+  author    = {Zhijiang Guo and
+               Yan Zhang and
+               Wei Lu},
+  title     = {Attention Guided Graph Convolutional Networks for Relation Extraction},
+  journal   = {CoRR},
+  volume    = {abs/1906.07510},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1906.07510},
+  archivePrefix = {arXiv},
+  eprint    = {1906.07510},
+  timestamp = {Tue, 25 Jun 2019 15:23:41 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1906-07510.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{zhou-etal-2016-attention,
+    title = "Attention-Based Bidirectional Long Short-Term Memory Networks for Relation Classification",
+    author = "Zhou, Peng  and
+      Shi, Wei  and
+      Tian, Jun  and
+      Qi, Zhenyu  and
+      Li, Bingchen  and
+      Hao, Hongwei  and
+      Xu, Bo",
+    booktitle = "Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)",
+    month = aug,
+    year = "2016",
+    address = "Berlin, Germany",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/P16-2034",
+    doi = "10.18653/v1/P16-2034",
+    pages = "207--212",
+}
+
+@inproceedings{palstm,
+    title = "Position-aware Attention and Supervised Data Improve Slot Filling",
+    author = "Zhang, Yuhao  and
+      Zhong, Victor  and
+      Chen, Danqi  and
+      Angeli, Gabor  and
+      Manning, Christopher D.",
+    booktitle = "Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing",
+    month = sep,
+    year = "2017",
+    address = "Copenhagen, Denmark",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D17-1004",
+    doi = "10.18653/v1/D17-1004",
+    pages = "35--45",
+    abstract = "Organized relational knowledge in the form of {``}knowledge graphs{''} is important for many applications. However, the ability to populate knowledge bases with facts automatically extracted from documents has improved frustratingly slowly. This paper simultaneously addresses two issues that have held back prior work. We first propose an effective new model, which combines an LSTM sequence model with a form of entity position-aware attention that is better suited to relation extraction. Then we build TACRED, a large (119,474 examples) supervised relation extraction dataset obtained via crowdsourcing and targeted towards TAC KBP relations. The combination of better supervised data and a more appropriate high-capacity model enables much better relation extraction performance. When the model trained on this new dataset replaces the previous relation extraction component of the best TAC KBP 2015 slot filling system, its F1 score increases markedly from 22.2{\%} to 26.7{\%}.",
+}
+
+@inproceedings{zeng-etal-2014-relation,
+    title = "Relation Classification via Convolutional Deep Neural Network",
+    author = "Zeng, Daojian  and
+      Liu, Kang  and
+      Lai, Siwei  and
+      Zhou, Guangyou  and
+      Zhao, Jun",
+    booktitle = "Proceedings of {COLING} 2014, the 25th International Conference on Computational Linguistics: Technical Papers",
+    month = aug,
+    year = "2014",
+    address = "Dublin, Ireland",
+    publisher = "Dublin City University and Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/C14-1220",
+    pages = "2335--2344",
+}
+
+@inproceedings{nguyen-grishman-2015-relation,
+    title = "Relation Extraction: Perspective from Convolutional Neural Networks",
+    author = "Nguyen, Thien Huu  and
+      Grishman, Ralph",
+    booktitle = "Proceedings of the 1st Workshop on Vector Space Modeling for Natural Language Processing",
+    month = jun,
+    year = "2015",
+    address = "Denver, Colorado",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/W15-1506",
+    doi = "10.3115/v1/W15-1506",
+    pages = "39--48",
+}
+
+@inproceedings{wang-etal-2016-relation,
+    title = "Relation Classification via Multi-Level Attention {CNN}s",
+    author = "Wang, Linlin  and
+      Cao, Zhu  and
+      de Melo, Gerard  and
+      Liu, Zhiyuan",
+    booktitle = "Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2016",
+    address = "Berlin, Germany",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/P16-1123",
+    doi = "10.18653/v1/P16-1123",
+    pages = "1298--1307",
+}
+
+@article{tre,
+  author    = {Christoph Alt and
+               Marc H{\"{u}}bner and
+               Leonhard Hennig},
+  title     = {Improving Relation Extraction by Pre-trained Language Representations},
+  journal   = {CoRR},
+  volume    = {abs/1906.03088},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1906.03088},
+  archivePrefix = {arXiv},
+  eprint    = {1906.03088},
+  timestamp = {Fri, 14 Jun 2019 09:38:24 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1906-03088.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{bert-em,
+  author    = {Livio Baldini Soares and
+               Nicholas FitzGerald and
+               Jeffrey Ling and
+               Tom Kwiatkowski},
+  title     = {Matching the Blanks: Distributional Similarity for Relation Learning},
+  journal   = {CoRR},
+  volume    = {abs/1906.03158},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1906.03158},
+  archivePrefix = {arXiv},
+  eprint    = {1906.03158},
+  timestamp = {Fri, 14 Jun 2019 09:38:24 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1906-03158.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{bordes2013translating,
+  title={Translating embeddings for modeling multi-relational data},
+  author={Bordes, Antoine and Usunier, Nicolas and Garcia-Duran, Alberto and Weston, Jason and Yakhnenko, Oksana},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={2787--2795},
+  year={2013}
+}
+
+@inproceedings{yang2015embedding,
+  title={Embedding entities and relations for learning and inference in knowledge bases},
+  author={Yang, Bishan and Yih, Wen-tau and He, Xiaodong and Gao, Jianfeng and Deng, Li},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year={2015}
+}
+
+@inproceedings{trouillon2016complex,
+	title = {{Complex embeddings for simple link prediction}},
+	author = {Trouillon, Th\'eo and Welbl, Johannes and Riedel, Sebastian and Gaussier, \'Eric and Bouchard, Guillaume},
+	booktitle = {International Conference on Machine Learning (ICML)},
+	volume={48},
+	pages={2071--2080},
+	year = {2016}
+}
+
+@inproceedings{dettmers2018conve,
+	Author = {Dettmers, Tim and Pasquale, Minervini and Pontus, Stenetorp and Riedel, Sebastian},
+	Booktitle = {Proceedings of the 32th AAAI Conference on Artificial Intelligence},
+	Title = {Convolutional 2D Knowledge Graph Embeddings},
+	Url = {https://arxiv.org/abs/1707.01476},
+	Year = {2018},
+        pages  = {1811--1818},
+  	Month = {February}
+}
+
+@inproceedings{transr_ctranr,
+ author = {Lin, Yankai and Liu, Zhiyuan and Sun, Maosong and Liu, Yang and Zhu, Xuan},
+ title = {Learning Entity and Relation Embeddings for Knowledge Graph Completion},
+ booktitle = {Proceedings of the Twenty-Ninth AAAI Conference on Artificial Intelligence},
+ series = {AAAI'15},
+ year = {2015},
+ isbn = {0-262-51129-0},
+ location = {Austin, Texas},
+ pages = {2181--2187},
+ numpages = {7},
+ url = {http://dl.acm.org/citation.cfm?id=2886521.2886624},
+ acmid = {2886624},
+ publisher = {AAAI Press},
+} 
+
+@inproceedings{transd,
+  title={Knowledge Graph Embedding via Dynamic Mapping Matrix},
+  author={Ji, Guoliang and He, Shizhu and Xu, Liheng and Liu, Kang and Zhao, Jun},
+  booktitle={Proceedings of the 53rd Annual Meeting of the Association for Computational Linguistics and the 7th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)},
+  pages={687--696},
+  year={2015}
+}
+
+@inproceedings{tucker,
+    title = "{T}uck{ER}: Tensor Factorization for Knowledge Graph Completion",
+    author = "Balazevic, Ivana  and
+      Allen, Carl  and
+      Hospedales, Timothy",
+    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
+    month = nov,
+    year = "2019",
+    address = "Hong Kong, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D19-1522",
+    doi = "10.18653/v1/D19-1522",
+    pages = "5185--5194",
+    abstract = "Knowledge graphs are structured representations of real world facts. However, they typically contain only a small subset of all possible facts. Link prediction is a task of inferring missing facts based on existing ones. We propose TuckER, a relatively straightforward but powerful linear model based on Tucker decomposition of the binary tensor representation of knowledge graph triples. TuckER outperforms previous state-of-the-art models across standard link prediction datasets, acting as a strong baseline for more elaborate models. We show that TuckER is a fully expressive model, derive sufficient bounds on its embedding dimensionalities and demonstrate that several previously introduced linear models can be viewed as special cases of TuckER.",
+}
+
+@inproceedings{lao2011random,
+  title={Random walk inference and learning in a large scale knowledge base},
+  author={Lao, Ni and Mitchell, Tom and Cohen, William W},
+  booktitle={Proceedings of the Conference on Empirical Methods in Natural Language Processing},
+  pages={529--539},
+  year={2011},
+  organization={Association for Computational Linguistics}
+}
+
+@inproceedings{gardner2013improving,
+  title={Improving learning and inference in a large knowledge-base using latent syntactic cues},
+  author={Gardner, Matt and Talukdar, Partha Pratim and Kisiel, Bryan and Mitchell, Tom},
+  booktitle={Proceedings of the 2013 Conference on Empirical Methods in Natural Language Processing},
+  pages={833--838},
+  year={2013}
+}
+
+@inproceedings{neelakantancompositional,
+  title={Compositional Vector Space Models for Knowledge Base Completion},
+  author={Neelakantan, Arvind and Roth, Benjamin and McCallum, Andrew},
+  booktitle={ACL},
+  year={2015}
+}
+
+@inproceedings{minerva,
+  title={Go for a walk and arrive at the answer: Reasoning over paths in knowledge bases using reinforcement learning},
+  author={Das, Rajarshi and Dhuliawala, Shehzaad and Zaheer, Manzil and Vilnis, Luke and Durugkar, Ishan and Krishnamurthy, Akshay and Smola, Alex and McCallum, Andrew},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year={2018}
+}
+
+@inproceedings{guutraversing,
+  title={Traversing Knowledge Graphs in Vector Space},
+  author={Guu, Kelvin and Miller, John and Liang, Percy},
+  booktitle={Proceedings of the Conference on Empirical Methods in Natural Language Processing},
+  pages={318--327},
+  year={2015}
+}
+
+@inproceedings{toutanova2016compositional,
+  title={Compositional Learning of Embeddings for Relation Paths in Knowledge Base and Text.},
+  author={Toutanova, Kristina and Lin, Victoria and Yih, Wen-tau and Poon, Hoifung and Quirk, Chris},
+  booktitle={ACL},
+  year={2016}
+}
+
+@inproceedings{salesforce,
+  title={Multi-Hop Knowledge Graph Reasoning with Reward Shaping},
+  author={Lin, Xi Victoria and Socher, Richard and Xiong, Caiming},
+  booktitle={Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing},
+  pages={3243--3253},
+  year={2018}
+}
+
+@inproceedings{han,
+  title={Neural Knowledge Acquisition via Mutual Attention Between Knowledge Graph and Text},
+  author={Xu Han and Zhiyuan Liu and Maosong Sun},
+  booktitle={AAAI},
+  year={2018}
+}
+
+@inproceedings{semeval,
+    title = "{S}em{E}val-2010 Task 8: Multi-Way Classification of Semantic Relations between Pairs of Nominals",
+    author = "Hendrickx, Iris  and
+      Kim, Su Nam  and
+      Kozareva, Zornitsa  and
+      Nakov, Preslav  and
+      {\'O} S{\'e}aghdha, Diarmuid  and
+      Pad{\'o}, Sebastian  and
+      Pennacchiotti, Marco  and
+      Romano, Lorenza  and
+      Szpakowicz, Stan",
+    booktitle = "Proceedings of the 5th International Workshop on Semantic Evaluation",
+    month = jul,
+    year = "2010",
+    address = "Uppsala, Sweden",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/S10-1006",
+    pages = "33--38",
+}
+
+@article{bag_re_kglp,
+  author    = {Iz Beltagy and
+               Kyle Lo and
+               Waleed Ammar},
+  title     = {Improving Distant Supervision with Maxpooled Attention and Sentence-Level
+               Supervision},
+  journal   = {CoRR},
+  volume    = {abs/1810.12956},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1810.12956},
+  archivePrefix = {arXiv},
+  eprint    = {1810.12956},
+  timestamp = {Thu, 08 Nov 2018 10:57:46 +0100},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1810-12956.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{long_tail,
+  author    = {Ningyu Zhang and
+               Shumin Deng and
+               Zhanlin Sun and
+               Guanying Wang and
+               Xi Chen and
+               Wei Zhang and
+               Huajun Chen},
+  title     = {Long-tail Relation Extraction via Knowledge Graph Embeddings and Graph
+               Convolution Networks},
+  journal   = {CoRR},
+  volume    = {abs/1903.01306},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1903.01306},
+  archivePrefix = {arXiv},
+  eprint    = {1903.01306},
+  timestamp = {Wed, 19 Jun 2019 15:13:42 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1903-01306.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{lstm,
+  title={Long short-term memory},
+  author={Hochreiter, Sepp and Schmidhuber, J{\"u}rgen},
+  journal={Neural computation},
+  volume={9},
+  number={8},
+  pages={1735--1780},
+  year={1997},
+  publisher={MIT Press}
+}
+
+@inproceedings{coper,
+  title     = {{Contextual Parameter Generation for Knowledge Graph Link Prediction}},
+  author    = {George Stoica* and Otilia Stretcu* and Platanios*, Emmanouil Antonios and P{\'o}czos, Barnab{\'a}s and Mitchell, Tom M.},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)},
+  year      = {2020}
+}
+
+@InProceedings{stanfordcorenlp,
+  author    = {Manning, Christopher D. and  Surdeanu, Mihai  and  Bauer, John  and  Finkel, Jenny  and  Bethard, Steven J. and  McClosky, David},
+  title     = {The {Stanford} {CoreNLP} Natural Language Processing Toolkit},
+  booktitle = {Association for Computational Linguistics (ACL) System Demonstrations},
+  year      = {2014},
+  pages     = {55--60},
+  url       = {http://www.aclweb.org/anthology/P/P14/P14-5010}
+}
+
+@misc{knowbert,
+    title={Knowledge Enhanced Contextual Word Representations},
+    author={Matthew E. Peters and Mark Neumann and Robert L. Logan IV and Roy Schwartz and Vidur Joshi and Sameer Singh and Noah A. Smith},
+    year={2019},
+    eprint={1909.04164},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+
+@ARTICLE{GAAT,  author={R. {Wang} and B. {Li} and S. {Hu} and W. {Du} and M. {Zhang}},  journal={IEEE Access},   title={Knowledge Graph Embedding via Graph Attenuated Attention Networks},   year={2020},  volume={8},  number={},  pages={5212-5224},}
+
+@article{spanbert,
+  author    = {Mandar Joshi and
+               Danqi Chen and
+               Yinhan Liu and
+               Daniel S. Weld and
+               Luke Zettlemoyer and
+               Omer Levy},
+  title     = {SpanBERT: Improving Pre-training by Representing and Predicting Spans},
+  journal   = {CoRR},
+  volume    = {abs/1907.10529},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1907.10529},
+  archivePrefix = {arXiv},
+  eprint    = {1907.10529},
+  timestamp = {Thu, 01 Aug 2019 08:59:33 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1907-10529.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}

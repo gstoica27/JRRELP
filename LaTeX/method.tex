@@ -1,0 +1,455 @@
+% In this section, we describe our method, its learning tasks, and the notation used throughout the paper.
+
+% % Before describing our proposed method, we present our notation, and clear definitions of the relevant learning tasks and models.
+
+% \subsection{Notation}
+% \label{sec:data}
+
+% Our main motivation and focus for this work is to perform well in the RE task.
+% Therefore, our training data $\mathcal{D}$ contains a collection of sentences.
+% Let $X=[x_1, x_2, \ldots x_n]$ denote a sentence, where $x_i$ represents a one-hot encoding for the $i^{\text{th}}$ sentence token (i.e., word).
+% Each sentence contains a subject $s = [x_{s^{\textrm{start}}}, x_{s^{\textrm{start}} + 1}, \hdots, x_{s^{\textrm{end}}}]$, that is defined as a contiguous span $(s^{\textrm{start}}, s^{\textrm{end}})$ over the sentence, and an object $o = [o_{o^{\textrm{start}}}, o_{o^{\textrm{start}} + 1}, \hdots, o_{o^{\textrm{end}}}]$, that is similarly defined.
+% A {\em type} is also provided for each such subject/object span and termed $s^{\textrm{type}}$ and $o^{\textrm{type}}$ respectively.
+% For example, consider the sentence ``\texttt{\textcolor{our_blue}{John Doe} lives in \textcolor{our_red}{Florida}}'', where the subject is shown in \textcolor{our_blue}{blue} color and the object in \textcolor{our_red}{red} color.
+% In this case, the subject may be tagged as having type \textcolor{our_blue}{\texttt{PERSON}} and the object is tagged as having type \textcolor{our_red}{\texttt{CITY}}.
+% During data preprocessing, we replace all subject and object tokens in the sentences by their corresponding types.
+% For the aforementioned example, the sentence after preprocessing becomes ``\texttt{\textcolor{our_blue}{SUBJECT-PERSON SUBJECT-PERSON} lives in \textcolor{our_red}{OBJECT-CITY}}.''
+% We refer to this preprocessing step as {\em type-substitution} and note that it is a relatively standard preprocessing step for this task that is used by \citet{palstm}, \citet{cgcn}, and \citet{aggcn}.
+% Additionally, each sentence may contain more structural information features such as part-of-speech (POS) and named entity recognition (NER) tags, as well as a dependency parse.
+% We shall denote all such features associated with a sentence $X$ as a set $C$.
+% Finally, for each sentence we also have an associated relation $r$ that the sentence describes.
+% In the aforementioned example, the relation could be \texttt{livesIn}.
+% In summary, our training data $\mathcal{D}$ is a set of $N$ tuples: $\mathcal{D} = \{ ( X_i, C_i, s_i, o_i, s^{\textrm{type}}_i, o^{\textrm{type}}_i, r_i ) \}_{i=1}^N$, where $N$ is the number of training sentences.
+
+% \subsection{Relation Extraction Task}
+% \label{sec:re-task}
+
+% The objective in relation extraction (RE) is to use $X$, $C$, $s$, and $o$ to infer the relation $r$ between $s$ and $o$.
+% Most successful models that have been proposed to tackle this task---including the current state-of-the-art \citep{bert-em}---involve learning vector embeddings for each component.
+% Specifically, let $N_v$, $N_r $, and $N_c$ denote the vocabulary size for sentence tokens, the number of unique relations, and the number of unique attributes in $C$, computed over the whole training dataset.
+% Also, let $D_v$, $D_r $, and $D_c$ denote the corresponding embedding sizes.
+% Then, we define $\bm{V}\in\mathbb{R}^{D_v\times N_v}$, $\bm{R}\in\mathbb{R}^{D_r\times N_r}$, and $\bm{A}\in\mathbb{R}^{D_c\times N_c}$ as the vocabulary, relation, and attribute embedding matrices, respectively.
+% Note that $\bm{V}, \bm{R}$, and $\bm{A}$ are learnable model parameters.
+% Given a sentence, a subject, an object, and the sentence attributes, the corresponding embedding representations are defined as:
+% $\bm{X} = \bm{V}X \in \smash{\mathbb{R}^{D_v \times n}}$,
+% $\bm{C} = \bm{A}C \in \smash{\mathbb{R}^{D_c\times c}}$,
+% $\bm{s} = \bm{V}s \in \smash{\mathbb{R}^{D_v \times (s^{\textrm{end}} - s^{\textrm{start}} + 1)}}$, and
+% $\bm{o} = \bm{V}o \in \smash{\mathbb{R}^{D_v \times (o^{\textrm{end}} - o^{\textrm{start}} + 1)}}$,
+% where $n$ is the number of tokens in $X$ and $c$ is the number of attributes in $C$.
+% Similarly, we can also define the embedded relation as $\bm{r} = \bm{R}r \in \mathbb{R}^{D_r}$.
+% Given these embeddings, most successful models that have been proposed to tackle the RE task can be formulated as instances of the following abstract model:
+% \begin{align}
+%     & \bm{X} = \bm{V}X,\;
+%       \bm{C} = \bm{A}C,\;
+%       \bm{s} = \bm{V}s,\;
+%       \bm{o} = \bm{V}o,
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{EMBEDDING}} \\
+%     & \hat{\bm{r}} = f(\bm{X}, \bm{C}, \bm{s}, \bm{o}),
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{PREDICTION}} \\
+%     & p(r \mid \hat{\bm{r}}) = \textrm{Softmax}(\bm{R}\hat{\bm{r}} + \bm{b}),
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{PROBABILITY ESTIMATION}}
+%     \label{eq:re-model}
+% \end{align}
+% where $\hat{\bm{r}}$ is the inferred relation representation from a prediction model $f$.
+% A probability distribution over relations is constructed by applying the ``Softmax'' function over the sum of the dot-product between $\hat{\bm{r}}$ and the relation embeddings $\bm{R}$, and a learnable bias term $b \in \mathbb{R}^{N_r}$.
+% In order to demonstrate how multiple RE methods fit under this formulation, we now provide a brief description of the two baseline methods used in our experiments.
+
+% \textbf{PA-LSTM.}
+% This model was proposed by \citet{palstm}.
+% The sentence attributes it uses are POS and NER tags, as well as SO and OO tags representing the positional offset of each token from the subject and the object respectively.
+% Under our abstract formulation, the PA-LSTM model is defined by using a particular instance of the $f$ function that centers around a long short-term memory \citep[LSTM;][]{lstm} network.
+% Specifically, $f$ comprises of first concatenating the sentence and the POS and NER tag embeddings and then applying a bi-directional LSTM network over the resulting sequences.
+% The outputs of this LSTM are attended over using the SO and OO tag embeddings, by applying a custom position-aware attention mechanism.
+% For further details, we refer readers to the work of \cite{palstm}.
+
+% \textbf{C-GCN.}
+% This model was proposed by \citet{cgcn} and is one of the best performing RE models.
+% The sentence attributes it uses are POS tags, NER tags, and a sentence dependency parse, as well as SO and OO tags.
+% Similar to the PA-LSTM, the sentence embeddings are concatenated with their respective POS and NER tag embeddings, and encoded using bi-directional LSTM network.
+% However, in contrast to PA-LSTM, C-GCN infers relations from these encodings by reasoning over the graph implied by a pruned version of the provided dependency parse tree.
+% In particular, C-GCN computes the least common ancestor (LCA) between $s$ and $o$, and uses the SO and OO tags to prune the tree around the LCA.
+% Afterwards, C-GCN processes the sentence encodings using a graph convolution network (GCN) defined over the pruned dependency parse tree.
+% The resulting representations are finally processed by a multi-layer perceptron to predict relations.
+% For further details, we refer readers to the work of \cite{cgcn}.
+
+% Note that PA-LSTM and C-GCN are just two of many approaches supported by our abstract RE model formulation.
+% For instance, more recent transformer-based methods \citep[e.g.,][]{tre,bert-em} can also be represented by using a different definition for $f$.
+
+% \subsection{Knowledge Graph Link Prediction Task}
+% \label{sec:kglp-task}
+
+% The objective in knowledge graph link prediction (KGLP) is to infer a set of objects $O$ given a question, $(s, r, ?)$, in the form of a subject-relation-object triple, missing the object.
+% Typically, $s$ and $o$ are nodes in a knowledge graph (KG), while $r$ represents a graph edge.
+% While our training data does not necessarily provide an explicit KG to reason over, it is possible to generate one by assigning unique identifiers for all subjects, relations, and objects.
+% For instance, these may be defined as their corresponding types.
+% Note that given subject and object types we can ``infer'' relation types as the pair of subject and object types that they appear with in the training data.
+% In what follows we assume that types are used as the identifiers (as they are available in our training data), but we want to emphasize that JRRILP is not limited to datasets with these characteristics; it instead supports any dataset that specifies a mapping to a pre-existing KG, or where it is possible to define unique subject, relation, and object identifiers, which is a very weak constraint.
+% Therefore, given a sentence with $s$, $o$, and $r$, we can use the subject and object types---$s^{\textrm{type}}$ and $o^{\textrm{type}}$, respectively---to form a KG whose edges are represented by each $r$ and nodes by each $s^{\textrm{type}}$ and $o^{\textrm{type}}$.
+% % Furthermore, we can also include relations $\hat{r}$ predicted by an RE method as additional edges between $s^{\textrm{type}}$ and $o^{\textrm{type}}$.
+% For ease of notation, we assume that each term is a one-hot encoding of the corresponding identifier.
+
+% Due to the {\em type-substitution} preprocessing step that we described in Section~\ref{sec:data}, all types are included in the sentence token vocabulary.
+% We can thus obtain embeddings similar to how we did for the RE task in Section~\ref{sec:re-task}: 
+% $\bm{s^{\textrm{type}}} = \bm{V} s^{\textrm{type}} \in \smash{\mathbb{R}^{D_v}}$,
+% $\bm{o^{\textrm{type}}} = \bm{V} o^{\textrm{type}} \in \smash{\mathbb{R}^{D_v}}$, and
+% $\bm{r} = \bm{R} r \in \smash{\mathbb{R}^{D_r}}$.
+% Multiple existing KGLP methods can be characterized in terms of the following abstract model:
+% \begin{align}
+%     & \bm{s^{\textrm{type}}} = \bm{V} s^{\textrm{type}},\;
+%       \bm{r} = \bm{R} r,
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{EMBEDDING}} \\
+%     & \bm{z} = g(\bm{s^{\textrm{type}}}, \bm{r}),
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{MERGE}} \\
+%     & p(O \mid o^{\textrm{type}}, \bm{z}) = \textrm{Sigmoid}(\bm{V}_{o^{\textrm{type}}}\bm{z} + \bm{b}),
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{PROBABILITY ESTIMATION}}
+%     \label{eq:kglp-model}
+% \end{align}
+% where $\bm{z}$ is a merged representation of $\bm{s^{\textrm{type}}}$ and $\bm{r}$.
+% A probability distribution over possible objects is constructed by applying the ``Sigmoid'' function over the sum of the dot-product between $\bm{z}$ and the available object embeddings $\bm{V}_{o^{\textrm{type}}}$, and a learnable bias term $b \in \mathbb{R}^{N_o}$.
+% Note that $\bm{V}_{o^{\textrm{type}}} \subset \bm{V}$ and contains {\em only} valid (in the type-checking sense) object embeddings.
+% \citet{coper} show that multiple KGLP methods fit under this formulation.
+% We now provide the definition of ConvE \citep{dettmers2018conve} under this formulation, because we use ConvE in our experiments.
+% While we acknowledge that ConvE is not the current state-of-the-art (SoTA) KGLP approach, it performs very well while only using a fraction of the parameters current SoTA methods require, thus making it more efficient.
+% Moreover, ConvE is an example of a KGLP method which cannot be restructured to infer $r$ from $s$ and $o$, making it impossible to use with any of the previous joint RE and KGLP frameworks \citep[e.g.,][]{lfds,weston-2013}.
+% Note that, our results can only be further enhanced by using a stronger KGLP approach and so this choice should not affect our conclusions.
+
+% \textbf{ConvE.}
+% ConvE is defined by using the following merge function in our abstract model formulation:
+% \begin{align}
+%     & g(\bm{s^{\textrm{type}}}, \bm{r}) = \text{Conv2D}(\text{Reshape}([s^{\textrm{type}}; \bm{r}]),
+%     && \textsc{\sffamily\scriptsize\textcolor{gray}{MERGE}}
+% \end{align}
+% where ``Conv2D'' is a 2D convolution operation and ``$\text{Reshape}([s^{\textrm{type}}; \bm{r}])$'' first concatenates $s^{\textrm{type}}$ and $\bm{r}$ and then reshapes the resulting vector to be a square matrix, so that a convolution operation can be applied to it.
+% For further details, we refer readers to the work of \cite{dettmers2018conve}.
+
+% \subsection{Jointly Reasoning over Relation Extraction and Link Prediction}
+\label{sec:JRRILP}
+
+As mentioned in Section~\ref{sec:intro}, the RE and KGLP tasks are tightly coupled.
+Given a sentence $X$ (e.g., ``\texttt{Miami is in Florida}'') that contains a subject $s$ (e.g., \texttt{Miami}) and an object $o$ (e.g., \texttt{Florida}), the goal of RE is to predict the relation $r$ (e.g., \texttt{locatedIn}), between $s$ and $o$, that the sentence describes. Similarly, the goal of KGLP is to infer a set of objects $O$ using $r$ and $s$, such that the inferred objects correspond to correct subject-relation-object triples, and where $o\in O$ (this is known because the sentence $X$ describes this relationship).
+Based on this observation, we propose JRRILP, a multi-task learning framework that explicitly accounts for this relationship between RE and KGLP.
+JRRILP trains a RE model, $p_{\textrm{\tiny RE}}$, that is defined using our abstract formulation from Section~\ref{sec:re-task} and a KGLP model, $p_{\textrm{\tiny KGLP}}$, that is defined using our abstract formulation from Section~\ref{sec:kglp-task}, jointly, using four key ideas:
+\begin{enumerate}[noitemsep,topsep=0pt,leftmargin=2em]
+    \item \textbf{Parameter Sharing:}
+        $p_{\textrm{\tiny RE}}$ and $p_{\textrm{\tiny KGLP}}$ share all of the embedding parameters.
+        This corresponds to the matrices $\bm{V}$, $\bm{R}$, and $\bm{A}$ from Sections~\ref{sec:re-task}~and~\ref{sec:kglp-task}. Moreover, all parameters between RE and KGLP methods are also shared.
+        % Note that these matrices correspond to the majority of the model parameters, meaning that this form of parameter sharing introduces a very tight coupling between the two models.
+    \item \textbf{Joint Training:}
+        The two models are trained jointly by optimizing a single objective function.
+        This function contains terms that correspond to the RE objective function, the KGLP objective function, as well as a prediction coupling loss term.
+    \item \textbf{Cyclical Coupling:}
+        Our joint loss terms establish a cyclical relationship between the embedding parameters, that tightly couples the RE and KGLP tasks.
+        This is because the RE model uses $\bm{V}$ (which includes $\bm{V}_{o^{\textrm{type}}}$) to predict relation representations that are then compared to $\bm{R}$ to produce distribution over relations. Reciprocally, the KGLP model uses $\bm{R}$ to generate object embeddings that are compared to $\bm{V}_{o^{\textrm{type}}}$ to produce distributions over objects.
+        % This is because the RE model predicts relation embeddings using $\bm{V}$ that are then compared to $\bm{R}$ to produce distributions over relations, while the KGLP model predicts object embeddings using $\bm{R}$ that are then compared to $\bm{V}$ to produce distributions over objects.
+    \item \textbf{Unmodified Evaluation:} JRRILP does not introduce any additional terms when evaluating $p_{\textrm{RE}}$. Thus, rather than enhancing $p_{\textrm{RE}}$ by increasing its capacity, JRRILP does this by altering its training trajectory.
+    % \item \textbf{Prediction Coupling:}
+        % The third objective function term penalizes inconsistencies between the predictions of the RE and the KGLP models.
+        % Specifically, this term is the KGLP objective function, using the relation embeddings predicted by the RE model, instead of the ones that can be computed using the provided input relation.
+\end{enumerate}
+We now provide details on how each term of the joint training objective function is defined.
+
+\textbf{RE Loss.}
+The first term corresponds to the standard loss function used to train the RE model.
+This loss function is defined as follows (where we use the notation introduced in Section~\ref{sec:re-task}):
+\begin{equation}
+    \mathcal{L}_{\textrm{\tiny RE}} = \sum_{i=1}^N \textrm{SCE}(r_i, p_{\textrm{\tiny RE}}(r_i \mid X_i, C_i, s_i, o_i)),
+\end{equation}
+where ``SCE'' represents the softmax cross-entropy loss function, and $p_{\textrm{\tiny RE}}$ is defined as in Equation~\ref{eq:re-model}.
+% \begin{equation}
+%     p_{\textrm{\tiny RE}}(r_i \mid X_i, C_i, s_i, o_i) = \textrm{Softmax}(\bm{R} f_{\textrm{\tiny RE}}(\bm{X}_i, \bm{C}_i, \bm{s}_i, \bm{o}_i) + \bm{b}_{\textrm{\tiny RE}}),
+% \end{equation}
+where $f_{\textrm{\tiny RE}}$ is the specific prediction function used by our RE model.
+Although this loss term assumes that a {\em single} relation exists between a subject and an object in a sentence, it is consistent with the loss term utilized by our baselines and is also appropriate for our widely used benchmark datasets described in Section \ref{sec:experiments}.
+Additionally, we emphasize that this does not restrict the applicability of JRRILP to single-relation extraction problems.
+For instance, ``SCE'' can be substituted for binary-cross entropy (BCE) in the case of having multiple applicable relations.
+
+\textbf{KGLP Loss.}
+The second term corresponds to a popular loss function which is often used to train KGLP models.
+This loss function is defined as follows (where we use the notation introduced in Section~\ref{sec:kglp-task}):
+\begin{equation}
+    \mathcal{L}_{\textrm{\tiny KGLP}} = \sum_{i=1}^N \textrm{BCE}(O_i, p_{\textrm{\tiny KGLP}}(O_i \mid s^{\textrm{type}}_i, o^{\textrm{type}}_i, r_i)),
+\end{equation}
+where 
+% ``BCE'' represents the binary (i.e., sigmoid) cross-entropy loss function, and
+$p_{\textrm{\tiny KGLP}}$ is defined as in Equation~\ref{eq:kglp-model}.
+% \begin{equation}
+%     p_{\textrm{\tiny KGLP}}(O_i \mid s^{\textrm{type}}_i, o^{\textrm{type}}_i, r_i)) = \sigma(\bm{V}_{o^{\textrm{type}}_i} g_{\textrm{\tiny KGLP}}(\bm{s^{\textrm{type}}_i}, \bm{r}_i) + \bm{b}_{\textrm{\tiny KGLP}}),
+% \end{equation}
+where $g_{\textrm{\tiny KGLP}}$ is the specific merge function used by our KGLP model.
+Note here that $O_i$ is a set of objects that can be constructed automatically given all of the training data and conditioned on $s^{\textrm{type}}_i$ and $r_i$, as described in Section~\ref{sec:kglp-task}.
+We also acknowledge that certain KGLP methods \citep{bordes2013translating, yang2015embedding, transr_ctranr, transd, trouillon2016complex} cannot be represented by this loss term.
+However, we emphasize that this does not detract from the generality of the proposed framework because they can be accommodated by changing this term to their respective objective functions.
+
+\textbf{Coupling Loss.}
+The third term penalizes inconsistencies between the predictions of the RE and KGLP models.
+It is defined as follows:
+\begin{equation}
+    \mathcal{L}_{\textrm{\tiny COUPLING}} = \sum_{i=1}^N \textrm{BCE}(O_i, p_{\textrm{\tiny COUPLING}}(O_i \mid I_i, T_i)),
+\end{equation}
+where:
+\begin{equation}
+    p_{\textrm{\tiny COUPLING}}(O_i \mid \hdots) =
+   \sigma(\bm{V}_{o^{\textrm{type}}_i} g_{\textrm{\tiny KGLP}}(\bm{s^{\textrm{type}}_i}, \textcolor{our_red}{f_{\textrm{\tiny RE}}(\bm{I_i})}) + \bm{b}_{\textrm{\tiny KGLP}}),
+\end{equation}
+where we have omitted the conditioning variables for brevity, $I_i= \{X_i, C_i, s_i, o_i\}$, and $T_i=\{s^{\textrm{type}}_i, o^{\textrm{type}}_i\}$.
+The key difference between this loss term and the KGLP loss term is shown in \textcolor{our_red}{red} color.
+Specifically, the relations embeddings --- $\bm{r}_i$ --- computed by $r_i$ in the KGLP loss term, are replaced by the predicted relation embeddings $\hat{\mathbf{r}}_i$ from $f_{\textrm{RE}}$.
+% Specifically, we have taken the KGLP loss function and replaced the relation embeddings $\bm{r}_i$ that were computed using $r_i$ previously, with the relation embeddings predicted by the RE model.
+% Whereas the RE loss term measures the quality of predicted relations based on their alignment to correct relations, this term determines the quality of predicted relation
+% This term provides a second form of verification for an RE model. In addition to 
+% This term serves to verify the quality of RE model predictions by measuring the coverage of correct objects
+% This term improves RE model predictions by 
+% This term verifies the quality of RE model predictions by measuring their compatibility with the KGLP medel.
+% Tnis term 
+This term aligns the RE and KGLP methods by making the first compatible with the second, and enhances the overall performance of our framework.
+% This term ought to help improve the RE model predictions by making them in some sense ``compatible'' with the KGLP model.
+
+\subsection{JRRILP Objective Function}
+
+The JRRILP objective function is formed by putting together the above three terms:
+\begin{equation}
+    \mathcal{L}_{\textrm{\tiny JRRILP}} = \mathcal{L}_{\textrm{\tiny RE}} + \lambda_{\textrm{\tiny KGLP}} \mathcal{L}_{\textrm{\tiny KGLP}} + \lambda_{\textrm{\tiny COUPLING}} \mathcal{L}_{\textrm{\tiny COUPLING}},\label{eq:JRRILP}
+\end{equation}
+where $\lambda_{\textrm{\tiny KGLP}} \geq 0$ and $\lambda_{\textrm{\tiny COUPLING}} \geq 0$ are model hyperparameters that need to be tuned properly.
+We note that, while in principle $\lambda_{\textrm{\tiny KGLP}}$ and $\lambda_{\textrm{\tiny COUPLING}}$ can vary independently, in our experiments we set both to the same value for simplicity and cheaper hyperparameter tuning. Furthermore, we observed no negative impact in performance.
+
+Most importantly, due to the JRRILP parameter sharing and the use of this loss function, our framework introduces a cyclical relationship between the RE and KGLP models that couples them together very tightly.
+Specifically, the RE model predicts relation embeddings using $\bm{V}$ that it compares to $\bm{R}$ to produce distributions over relations.
+The KGLP model on the other hand predicts object embeddings using $\bm{R}$ that it compares to $\bm{V}$ to produce distributions over objects.
+It is mainly this cyclical relationship along with the coupling loss term that result in both the RE and KGLP models benefiting from each other and serves to enhance the performance and robustness of RE methods.
+An overview of JRRILP is shown in Figure~\ref{fig:JRRILP-overview}.
+
+Note that, even though JRRILP minimizes the joint three-task objective function shown in Equation~\ref{eq:JRRILP}, at test time we only use the RE model to predict relations between subjects and objects.
+Thus, JRRILP can be thought of as a framework which alters the learning trajectory of an RE model, rather than increase its capacity through using additional model parameters.
+% Thus, while training invariably uses more parameters than training only a relation extraction objective -- additional parameters are captured by the KGLP method, the extra parameters are {\em not} used during evaluation. In this way JRRILP can be thought of as a framework which alters a relation extraction model's learning trajectory, rather than increasing its capacity through additional supervision.
+
+% \section{Previous Method}
+
+% Notes:
+% - Notation: we should maybe have a notation table or at the very least a paragraph with notation that is used in the paper
+% - Idea is to present a "general" framework for our model in which any existing RE and LP method can be swapped to benefit from each other
+%     - How?
+%         - Set up framework using notation given in the notation section
+%         - This can lead into the below section
+% - briefly cover each method used
+%     - RE:
+%         - PA-LSTM
+%         - C-GCN
+%         -AGGCN
+%     - LP:
+%         - ConvE
+%         - Other?
+% - Objectives: Introduce the three objectives that problem learns
+%     - Describe how the classification layer of previous methods is different from that with the multi-task learning objective
+%         - Notably, the difference is that the weights of this layer denote the relation embeddings, which are directly used in the link prediction objective problem
+%         - Maybe we can introduce this as a necessary requirement to learn with the multi-objectives. B/c without the explicit tying the classification layer unconstrained what it learns.
+
+% We propose a novel multi-task learning framework for relation extraction which incorporates information from the related problem of knowledge graph link prediction. 
+% Our architecture, termed \textbf{JRRILP} --- {\em \textbf{J}ointly reasoning over \textbf{R}elation \textbf{E}xtraction via \textbf{L}ink \textbf{P}rediction} --- explicitly ties the two tasks together through two novel objectives and inter-task weight sharing. 
+% Moreover, JRRILP's modular and non-intrusive structure allows it to be applied over any existing relation extraction method.
+% \label{sec:method_intro}
+
+% Relation extraction and knowledge graph link prediction share complementary components and objectives.
+% Given a sentence $X$ (e.g., ``\texttt{Miami is in Florida}'') that contains a subject $s$ (e.g., \texttt{Miami}) and an object $o$ (e.g., \texttt{Florida}), the goal of RE is to predict the relation $r$ (e.g., \texttt{locatedIn}), between $s$ and $o$, that the sentence describes.
+% Similarly, KGLP involves using $r$ and $s$ to infer a set of objects $O$ that correspond to correct subject-relation-object triples, and where $o\in O$ (this is known because the sentence $X$ describes this relationship).
+% Based on these observations, we propose JRRILP, a novel multi-task learning framework that explicitly accounts for this relationship between RE and KGLP.
+% At the core of JRRILP lies a new objective function that consists of three terms:
+% (i) a RE objective term that penalizes wrong relation predictions made by the RE model when given the sentences, subjects, and objects from RE training data as inputs,
+% (ii) a KGLP objective term that penalizes wrong object-set predictions made by the KGLP model when given the subjects and relations from KGLP training data as inputs, and
+% (iii) a KGLP objective term that penalizes wrong predictions made by the KGLP model when given the subjects from RE training data and the {\em RE model predicted relations} as inputs.
+% In (iii) the penalty is computed based on whether the objects provided in the RE training data are included in the KGLP model predictions.
+
+
+
+% JRRILP consists of three learning phases:
+% (i) in the the first phase we train a RE model to predict the correct relation given a sentence, a subject, and an object,
+% (ii) in the second phase we train a KGLP model to predict the correct set of objects given a subject and a relation, which effectively allows us to train a link prediction method simultaneously alongside a RE approach.
+% The third step then comprises of using the KGLP model to infer a set of objects using the predicted relation from the RE model and $s$. Based on the problem setup, we expect this set to include the respective sentence object, $o$.
+% The third step then comprises of a KGLP task and uses the predicted relation and subject to predict a set of objects which we expect to include the sentence's object.
+
+% We posit this approach has three key benefits: 
+% (1) The third stage forms a kind of {\em verification} measure of the correctness of the RE method's predicted relation. For instance, if the inferred relation is incorrect, then the predicted KGLP object set is inaccurate and vice-versa. 
+% (2) By learning a mapping from two singular components -- $r$ and $s$ -- the second and third steps encourage our models to learn broader component representation for $r,s$ and $o$ that can aid in generalizing to unobserved data. 
+% (3) It is general, enabling it to extend many existings RE and KGLP approaches.
+
+% We term our framework \textbf{JRRILP} --- {\em \textbf{J}ointly reasoning over \textbf{R}elation \textbf{E}xtraction via \textbf{L}ink \textbf{P}rediction}, and describe it in further detail in the following section. 
+
+
+% \subsection{Notation}\label{sec:notation}
+% Before describing our proposed method, we introduce the notation that we will be using for the remainder of this paper. Let $X=[x_1, x_2, \dots, x_n]$ denote a sentence, where $x_i$ represents the $i^{\text{th}}$ token. Each sentence contains a subject and object, which span non-overlapping consecutive sequences: $X_s=[x_{s1}, x_{s1+1}, \ldots, x_{s2}]$ and $X_o = [x_{o1}, x_{o1+1}, \ldots, x_{o2}]$ respectively. Moreover, each sentence observes additional structural characteristics such as token Part of Speech (POS), Named Entity Recognition (NER), and Dependency Trees, which can be abstracted as members of a set $S$ that contains representations of these components. Given the sentence $X$, the subject $X_s$ and object $X_o$, and additional attributes $S$, the objective is to infer the relationship $r\in R$ --- where $R$ is the set of possible relations --- between $X_s$ and $X_o$. 
+
+% Before describing our proposed framework, we introduce the notation that we will be using for the remainder of this paper. Let $X=[x_1, x_2, \ldots x_n]$ denote a sentence, where $x_i$ represents a one-hot encoding for the $i^{\text{th}}$ sentence token. Each sentence contains a subject $s=[x_{s1}, x_{s1+1}, \ldots, x_{s2}]$ and object $o=[o_{o1}, o_{o1+1}, \ldots, o_{o2}]$ that span consecutive non-overlapping sequences in $X$. Sometimes, each span describes a {\em type} of subject or object respectively, and each appearance in the sequence is replaced by the corresponding type. For instance, in the sentence "$\texttt{John Doe lives in Florida}$", the subject tokens, $s = [\texttt{John}, \texttt{Doe}]$, and object, $o=[\texttt{Florida}]$ are replaced with their types: "$\texttt{PERSON PERSON lives in CITY}$". We refer to this procedure as {\em type-substitution}. Additionally, each sentence may contain structural characteristics such as part of speech (POS), named entity recognition, NER, and dependency tree information, which we abstract as members of a set, $C$. 
+
+% The objective of relation extraction is to use $X, s, o$ and $C$ to infer the relation $r$ between $s$ and $o$, A common preliminary  approach to learning these relations involves learning dense representations of each component. Let $N_v, N_r, N_c$ denote the vocabulary size (including subject and object types), number of unique relations, and number of unique  attributes in $C$ from an arbitrary dataset. 
+% % Additionally, assume that $N_v$ accounts for all subject and object types. 
+% We define $\mathbf{V}\in\mathbb{R}^{D_v\times N_v}, \mathbf{R}\in\mathbb{R}^{D_r\times N_r}$ and $\mathbf{A}\in\mathbb{R}^{D_c\times N_c}$ as vocabulary, relation, and attribute embedding matrices respectively. $\mathbf{V}, \mathbf{R}$, and $\mathbf{A}$ are trainable parameters. Given a sentence, subject, object, and its attributes, the corresponding embedding representations are $\mathbf{X}=\mathbf{V}X$, $\mathbf{s}=\mathbf{V}s$, $\mathbf{o}=\mathbf{V}o$, and $\mathbf{C_x} = \mathbf{A}C_x$, where $C_x \subseteq C$ is an arbitrary subset of attributes $\in C$ which are required by a model. Additionally, $\mathbf{X}\in\mathbb{R}^{D_v\times n}, \mathbf{s}\in\mathbb{R}^{D_v\times (s2-s1+1)}, \mathbf{o}\in\mathbb{R}^{D_v\times (o2-o1+1)}$ and $\mathbf{C_x}\in\mathbb{R}^{D_c\times c}$, where $c$ is the number of attributed desired. Using $\mathbf{R}$, we can also denote the relation embedding as $\mathbf{r}=\mathbf{R}r, \mathbf{r}\in\mathbb{R}^{D_r}$.
+
+% Many existing relation extraction methods can be described in terms of the following abstract model:
+% \begin{align}
+%     &\mathbf{X}=\mathbf{V}X, \mathbf{s}=\mathbf{V}s, \mathbf{o}=\mathbf{V}o, \mathbf{C_x} = \mathbf{A}C_x && \text{(embedding)} \\
+%     &\hat{\mathbf{r}} = f(\mathbf{X}, \mathbf{s}, \mathbf{o},\mathbf{C_x}) && \text{(prediction)} \\
+%     &p(r | \hat{\mathbf{r}}) = \text{Softmax}(\mathbf{R}\hat{\mathbf{r}} + \mathbf{b}) && \text{(probability estimation)}
+% \end{align}
+% where $\hat{\mathbf{r}}$ is the inferred relation representation from the prediction method $f$. Using $\hat{\mathbf{r}}$, a probability distribution over possible relations being correct is created by applying the $\text{Softmax}$ activation function over the computed dot-product between $\hat{\mathbf{r}}$ and the relation embeddings, and offset by bias $b\in\mathbb{R}^{N_r}$. 
+% % Note that while this formulation includes representations of all available sentence characteristics -- $\mathbf{C}$, in practice this does necessarily need to be the case. Instead a subset of attributes, termed $C_x$, maybe used.
+
+% Although multiple RE approaches fit under this formulation, we use one of our baselines, PA-LSTM \cite{palstm} as an example. In PA-LSTM, we have:
+% \begin{align}
+%     &C_x = \{POS, NER, SO, OO\}\in C && \text{(attribute extraction)}\\
+%      &\mathbf{X}=\mathbf{V}X, \mathbf{s}=\mathbf{V}s, \mathbf{o}=\mathbf{V}o, \mathbf{C_x} = \mathbf{A}C_x && \text{(embedding)} \\
+%      &\hat{\mathbf{r}} = f(\mathbf{X}, \mathbf{s}, \mathbf{o},\mathbf{C_x}) && \text{(prediction)} \\
+%      &p(r | X, s, o, C_x) = \text{Softmax}(\mathbf{R}\hat{\mathbf{r}} + \mathbf{b}) && \text{(probability estimation)}
+% \end{align}
+% where POS, and NER are as defined previously, and SO/OO correspond to each token's  positional offset from the subject and object respectively. Additionally, $f$ is given by the core PA-LSTM model mechanism\cite{palstm}. Specifically, this comprises of first concatenating the token representations with their respective POS and NER tags, and then applying an LSTM network over $\mathbf{X, s, o}$ where in a slight abuse of notation $\mathbf{X}$ includes the concatenated POS and NER tag embedding representations. The outputs of this LSTM are then attended using the $SO$ and $OO$ vector representations, by applying a custom position-aware attention mechanism. For further details, we refer readers to the work of \cite{palstm}.
+
+% Our abstract model also supports graph-based approaches such as C-GCN\cite{cgcn}, a strong performing models and our second baseline. Using our model framework, C-GCN can be written as:
+% \begin{align}
+%     &C_x = \{POS, NER, SO, OO, Dependency Tree\}\in C && \text{(attribute extraction)}\\
+%      &\mathbf{X}=\mathbf{V}X, \mathbf{s}=\mathbf{V}s, \mathbf{o}=\mathbf{V}o, \mathbf{C_x} = \mathbf{A}C_x && \text{(embedding)} \\
+%      &\hat{\mathbf{r}} = f(\mathbf{X}, \mathbf{s}, \mathbf{o},\mathbf{C_x}) && \text{(prediction)} \\
+%      &p(r | X, s, o, C_x) = \text{Softmax}(\mathbf{R}\hat{\mathbf{r}} + \mathbf{b}) && \text{(probability estimation)}
+% \end{align}
+% where $Dependency Tree$ denotes $X$'s dependency tree, and the remaining members of $C_x$ are equivalent to those in used by PA-LSTM. Similar to PA-LSTM, token embeddings are concatenated with their respective $\{POS, NER\}$ representations, and encodes them with a BiLSTM network. However, in contrast to sequence-based approaches, C-GCN infers relations from these encodings by reasoning over a graph established by the pruned dependency tree. In particular, C-GCN computes the least common ancestor (LCA) between $s$ and $o$, and incorporates $\{SO, OO\}$ to prune the tree around the LCA. Afterwards, C-GCN unifies the pruned tree and token encodings with a graph convolution network (GCN). The resultant representations are passed through a classification MLP to prediction relations.
+% % In contrast to PA-LSTM, C-GCN infers relations by reasoning over a graph network established by the dependency tree. In addition, C-GCN prunes this tree around the least-common ancestor between $s$ and $o$, utilizing $SO$ and $OO$ as pruning attributes. A graph convolution network (GCN) is trained over the resultant tree
+% % where $Dependency Tree$ denotes the dependency tree of sentence $X$, and the remaining members of $C_x$ are equivalently defined as in the PA-LSTM formulation. Additionally, $f$ represents a three-stage neural network comprising of: (1) a BiLSTM over $\mathbf{X}, \mathbf{s}, \mathbf{o}$, (2) a graph convolution network (GCN) over the BiLSTM outputs using the dependency tree graph, and (3) a multi-layer perceptron (MLP) classification network. 
+% Further details can be found in \cite{cgcn}. We note that PA-LSTM and C-GCN are just two of many approaches supported by our abstract model definition. For instance, transformer methods (\cite{tre}, \cite{bert-em}) can be represented with only slight change in $C_x$ and different $f$ definition. 
+
+% The objective of knowledge graph link prediction is to infer a set of objects $O$ from a question, $(s, r, ?)$ comprised of subject $s$ and relation $r$.
+% % utilize a subject $s$ and relation $r$ to infer a set of possible objects $O$.
+% % $O$ may contain both objects which are {\em observed} with $s$ and $r$, and others which are {\em unobserved} -- such as novel data given during an inference stage.
+% Typically, $s, o$ are nodes in a KG, while $r$ represent its edges.
+% While relation extraction problems do not necessarily present an explicit knowledge graph to reason over, it is possible to generate one by assigning unique identifiers to sentence subject and object entities. For instance, when available, these may be their respective types. Similarly, relations may be tagged according to their connection type. For the rest of this section and the remainder of our paper, we assume that we can extract this information from subjects, objects and relations. However, we emphasize that JRRILP is not limited to datasets with these characteristics; JRRILP supports any dataset where it is possible to define unique subject, object and relation identifiers.
+% % While relation extraction problems do not necessarily present an explicit knowledge graph to reason over, it is possible to generate one using sentence subject and object types, and their relations. 
+% Given a sentence with $s$, $o$, and $r$, we can use the subject and object types -- $t_s$ and $t_o$ respectively -- to form a knowledge graph whose edges are represented by each $r$ and nodes by $t_s$ and $t_o$. Furthermore, we can also include relations $\hat{r}$ predicted by an RE method as additional edges between $t_s$ and $t_o$. For ease of notation, we assume each term is a one-hot encoding of the respective identifier.
+
+% Using $\mathbf{V}$ and $\mathbf{R}$, we extract the embedding representations of $t_s$, $t_o$, and $r$: $\mathbf{t_s}=\mathbf{V}t_s$, $\mathbf{t_o}=\mathbf{V}t_o$ and $\mathbf{r}=\mathbf{R}r$. Each of these representations are also learnable. Multiple existing link prediction methods can be characterized in terms of the following abstract model:
+% \begin{align}
+%     &\mathbf{z} = g(\mathbf{t_s}, \dot{\mathbf{r}}) && \text{(merge)} \\
+%     &p(O | t_s, \dot{r}) = \sigma((\mathbf{V_o}\mathbf{z} + \mathbf{b}) && \text{(probability estimation)}
+% \end{align}
+% where $\dot{\mathbf{r}}$ is either $\hat{\mathbf{r}}$ or $\mathbf{r}$, and $\mathbf{z}$ is a merged representation of $\mathbf{t_s}$ and $\mathbf{r}$ from merge function $g$. A probability distribution over possible objects is then given by applying the sigmoid non-linearity over the computed dot-product between $\mathbf{z}$ and the available object embeddings $\mathbf{V_o}$, offset by bias $\mathbf{b}$. Note that $\mathbf{V_o} \subset \mathbf{V}$ and contains {\em only} possible object representations. 
+
+% Although multiple KGLP methods fit under this formulation, we use ConvE \cite{dettmers2018conve}, the link prediction model used under our framework as an example. While we acknowledge that ConvE is not the current state-of-the-art (SoTA) KGLP approach, it performs very strongly whilst using a fraction of the parameters current SOTA method require, making it an ideal candidate for our framework evaluation. Moreover, ConvE is an example of a KGLP which cannot be restructured to infer $r$ from $s$ and $o$, excluding it from being used with previous joint RE and KGLP frameworks. 
+
+% ConvE can be described as,
+% \begin{align}
+%     &\mathbf{z} = \text{Conv2D}(\text{Reshape}([\mathbf{t}_s; \dot{\mathbf{r}}]) && \text{(merge)} \\
+%     &p(O | t_s, \dot{r}) = \sigma((\mathbf{V_o}\mathbf{z} + \mathbf{b}) && \text{(probability estimation)}
+% \end{align}
+% where $\text{Conv2D}$ is a 2D convolutional operation over a reshape of the concatenation, $[\mathbf{t_s};\dot{\mathbf{r}}]$, between $\mathbf{t_s}$ and $\dot{\mathbf{r}}$, and $\dot{r}$ denotes either $r$ or the RE method's predicted relation. For further details we refer readers to the work of \cite{dettmers2018conve}. 
+
+% \subsection{JRRILP}\label{sec:JRRILP}
+% Using the notation introduced in Section \ref{sec:notation}, we present JRRILP, which leverages the inter-connected nature of relation extraction and knowledge graph link prediction in a single general multi-task learning framework. Concretely, JRRILP extends RE methods by jointly learning three tasks comprising of both relation extraction and KGLP objectives. Following the canonical RE criterion, the first task aims to maximize the probability of the expected relation $r$ between sentence subject $s$ and object $o$:
+% \begin{align}
+%     \mathcal{L}_1 = \min \text{SCE}(r, p(r | X, s, o, C_x))
+% \end{align}
+% where $\text{SCE}$ represents softmax cross-entropy.
+% Rewriting the objective to expose the embedding matrices we obtain,
+% \begin{align}
+%     \mathcal{L}_1 = \min \text{SCE}(r, \text{Softmax}(\mathbf{R}f(\mathbf{V}X,\mathbf{V}s, \mathbf{V}o, \mathbf{C_x}) + \mathbf{b})
+% \end{align}
+% Following the standard KGLP problem formulation, the second task involves maximizing the probability of correct object set $O$ from a provided relation $r$ and subject entity $s_t$:
+% \begin{equation}
+%     \mathcal{L}_2 = \min \text{BCE}(O, p(O | t_s, \dot{r}))
+% \end{equation}
+% where $\text{BCE}$ denotes the binary cross-entropy loss. Similarly, we can expose the embedding matrices:
+% \begin{align}
+%      \mathcal{L}_2 = \min \text{BCE}(O, \sigma(\mathbf{V_o}g(\mathbf{V}t_s, \mathbf{R}r) + \mathbf{b}))
+% \end{align}
+% The third task provides a {\em verification} measure over the correctness of a predicted $\hat{\mathbf{r}}$ from an RE method, by applying a KGLP model over it, and $s$, to infer an object set $O$. Where we expect that $o\in O$. We define this as maximizing the probability that $o\in O$ based on $s$ and $\hat{r}$:
+% \begin{align}
+%     \mathcal{L}_3 &= p(O | t_s, \dot{r}) \\
+%     &= \min \text{BCE}(O, p(O | t_s, f(X, s, o, C_x))) \\
+%     &= \min \text{BCE}(O, \sigma(\mathbf{V_o}g(\mathbf{V}t_s, \hat{\mathbf{r}}) + \mathbf{b}))
+% \end{align}
+%  Figure \ref{fig:JRRILP_overview} illustrates each of these three tasks.
+% These tasks are then jointly learned as part of a global objective,
+% \begin{equation}
+%     \mathcal{L}_{JRRILP} = \mathcal{L}_1 + \lambda_1 \mathcal{L}_2 + \lambda_2 \mathcal{L}_3\label{eq:JRRILP_loss}
+% \end{equation}
+% where $\{\lambda_1, \lambda_2\}$ are hyperparameters. We note that while in principle $\lambda_1$ and $\lambda_2$ can be distinct, we set both to the same value in our experiments for simplicity. Importantly, all model parameters are shared by all three tasks, facilitating unconstrained information transfer between RE and KGLP problems. Moreover, JRRILP's improves upon existing literature by cyclically tying the core parameters of RE and KGLP tasks together: RE approaches build off $\mathbf{V}$ and compare against $\mathbf{R}$ whereas KGLP methods build off $\mathbf{R}$ and compare against $\mathbf{V}$. This enables both RE and KGLP models to benefit from one another and serves to enhance the performance of RE methods.
+
+% in addition to the advantages described in Section \ref{sec:method_intro}, this formulation facilitates cross-task information transfer through both the RE and KGLP model composition -- task (3), and the learnable embedding matrices -- $\mathbf{V}$ and $\mathbf{R}$ are the same across each task.
+
+
+% \subsubsection{Relation Extraction}\label{sec:re_notation}
+% \paragraph{Objective.} Let $X=[x_1, x_2, \dots, x_n]$ denote a sentence, where $x_i$ represents the $i^{\text{th}}$ token. Each sentence contains a subject $s$ and object $o$ which span non-overlapping consecutive sequences $X_s=[x_{s1}, x_{s1+1}, \ldots, x_{s2}]$ and $X_o = [x_{o1}, x_{o1+1}, \ldots, x_{o2}]$ respectively. For better generalization, RE methods typically replace each token in these respective spans by pre-computed subject and object types. For instance a subject token "John" may be replaced by its type: "Person". Moreover, each sentence contains additional structural characteristics such as token position with respect to the subject and object, per token part-of-speech (POS), per token named-entity-recognition (NER), and per token dependency tree information. Let $S$ denote the set which contains all such sentence characteristics. Depending on the model, some or all members of $S$ may be used, e.g. the token POS and NER but not the dependency tree information. Let $S_c\subseteq S$ correspond to the utilized attribute set.
+% Given the sentence $X$, the subject $X_s$ and object $X_o$, and additional attributes $S_c$, the goal of relation extraction is to infer the relationship $r\in R$ --- where $R$ is the set of possible relations --- between $X_s$ and $X_o$. 
+
+% \paragraph{Embeddings.} A common approach to learning relations between sentence subjects and objects is by applying a model over learnable embedding representations of each sentence component. Letting $x_i$ denote a one-hot encoded representation of the $\text{i}^{\text{th}}$ token, we can express the transformation to embeddings as follows. Let $N_x, N_r$ denote the problem vocabulary size and number of relations respectively. Additionally, let $C_j$ represent the number of unique elements in the $\text{j}^{\text{th}}$ component of $S$, such as the POS or NER. We then define the following embedding matrices: $\mathbf{V}^{D_x \times N_x}, \mathbf{R}^{D_r\times N_r}$ and $\mathbf{C}_j^{D_{cj}\times C_j}$ where $D_x, D_r$ and $D_{cj}$ correspond to the token, relation, and $S$ component embedding sizes respectively. $\mathbf{V}, \mathbf{R}$ and $\mathbf{C}_j$ are trainable parameters and denote the token vocabulary embeddings, relation embeddings, and corresponding sentence attribute embeddings respectively. 
+
+% \paragraph{Model Representation.} Existing relation extraction methods amongst both sequence-based and graph-based classes can be described in terms of the following abstract model:
+% \begin{align}
+%     &\mathbf{X} = [\mathbf{x}_1,\ldots,\mathbf{x}_n] = \mathbf{V}([x_1,\ldots, x_n]) && \text{(token embeddings)} \\
+%     &\mathbf{X}_s = [\mathbf{x}_{s1},\ldots, \mathbf{x}_{s2}] = \mathbf{V}([x_{s1}, \ldots, x_{s2}]) && \text{(subject embeddings)} \\
+%     &\mathbf{X}_o = [\mathbf{x}_{o1},\ldots, \mathbf{x}_{o2}] = \mathbf{V}([x_{o1}, \ldots, x_{o2}]) && \text{(object embeddings)} \\
+%     &\mathbf{X}_{cj} = \mathbf{C}_j([x_{1}, \ldots, x_{n}]), \forall j\in S_c && \text{(sentence component embeddings)} \\
+%     &\mathbf{ans} = f(\mathbf{X}, \mathbf{X}_s,\mathbf{X}_o, \{\mathbf{X}_{cj} | j\in S_c\}) && (prediction)
+% \end{align}
+% where $\mathbf{X}, \mathbf{X}_s, \mathbf{X}_o$ and $\mathbf{X}_{cj}$ are matrices of stacked token embeddings from the sentence, subject, object, and sentence attributes respectively. Note that while the sentence token, subject and object representation share the same embedding transformation matrix $\mathbf{V}$, each additional sentence attribute $\in S_c$ contains a unique embedding matrix. The answer $\mathbf{ans}$ is predicted from the sentence data using the prediction function $f$. Depending on the model, $f$ can be characterized by a variety of functions such as a Recurrent Neural Network (RNN), Multi-Layer Perceptron (MLP), a Graph Convolution Network (GCN), or any such combination of these. Similarly, $\mathbf{ans}$ can be the predicted embedding of the inferred relation $r$, or a probability distribution over possible relations. 
+
+% While multiple existing RE method fit under this formulation, we use PA-LSTM\textbf{[CITE]} as one such example because it is one of the baseline methods used in our experiments. In PA-LSTM, we have:
+% \begin{align}
+%     &S_c = \{POS, NER, P_s, P_o\} \in S && \text{(sentence attributes)} \\
+%     &f = PA\circ LSTM && \text{(prediction composition)} \\
+%     &\mathbf{ans} = PA(LSTM(\mathbf{X},\{\textbf{POS}, \textbf{NER}\}), \{\textbf{P}_s, \textbf{P}_o\})
+% \end{align}
+% where $P_s$ and $P_o$ denote sentence token positions with respect to the subject and object respectively, $LSTM$ is a standard LSTM network which additionally takes as input the token POS and NER embeddings (these are concatenated to each token embedding), and $PA$ denotes a Position-Aware attention mechanism which reasons over LSTM output and the additional subject and object position embeddings, and $\mathbf{ans}$ is the predicted relation embedding. Note that in this case $f$ comprises of a combination of both an RNN (the LSTM) and an MLP (the PA mechanism). An illustration of the PA-LSTM model is shown in Figure \textcolor{red}{FIG}. For further details, we refer the reader to the work of \textbf{[CITE]}. Note that while this example only illustrates a single application of our abstract model framework, many existing RE methods fit under the formulation by simply altering $f$ and $S_c$.
+
+% \paragraph{Criterion.} The typical relation extraction objective involves matching a predicted relation $\hat{\mathbf{r}}$ embedding to the {\em singular} correct relation $\mathbf{r}$ embedding. This can be criterion can be represented as,
+% \begin{equation}
+%     \mathcal{L}(\mathbf{r}, \hat{\mathbf{r}}) = \text{Softmax Cross Entropy}(\mathbf{r}, \mathbf{R} \hat{\mathbf{r}}) \label{eq:re_loss}
+% \end{equation}
+% where $\mathcal{L}(\cdot, \cdot)$ indicates the loss function, $\mathbf{R} \hat{\mathbf{r}}$ computes the similarity between $\hat{\mathbf{r}}$ and the representations of possible relations $R$, and $\text{Softmax Cross Entropy}$ denotes the matching loss of the predicted relation to the correct relation.
+
+% \subsubsection{Knowledge Graph Link Prediction}
+% \paragraph{Objective.} As described in Section \ref{sec:intro}, KGLP is the task of inferring objects from subjects and relations in a KG. borrowing from the notation introduced in Section \ref{sec:re_notation}, we formulate the problem as utilizing a given relation $r$ 
+% % (this can be either the predicted relation from an RE model or the corresponding relation the model is compared against in training) 
+% and the precomputed subject type $t_s$ from $X_s$ to infer the object type $t_o$ from $X_o$.
+
+% \paragraph{Embeddings.} Similar to RE, we can extract our corresponding embeddings for $t_s$ and $t_o$ via $\mathbf{V}$, and $r$ via $\mathbf{R}$: $\mathbf{t_s} = \mathbf{V}t_s$, $\mathbf{t_o}=\mathbf{V}t_o$, and $\mathbf{r}=\mathbf{R}r$.
+
+% \paragraph{Model Representation.} Using this notation, we describe ConvE\textbf{[CITE]}, a powerful KGLP method with notably few parameters amongst the top-performing methods, and the one we use in our framework, as follows:
+% \begin{align}
+%     &z = \text{Conv2D}(\text{Reshape}([\mathbf{t}_s; \mathbf{r}]) && \text{(merge)} \\
+%     &\hat{\mathbf{t}}_o = \text{Dense}(z) && \text{(prediction)}
+% \end{align}
+% where $[\mathbf{t}_s;\mathbf{r}]\in\mathbb{R}^{D_x + D_r}$ represents the result of stacking subject and relation embeddings together, followed by a reshape into a $W\times H$ rectangular matrix, where $W$ and $H$ are model hyperparameters such that $WH=D_x + D_r$. This matrix is then passed through a 2D convolution layer to obtain the aggregated representation $z$. The prediction function is defined as a single dense layer MLP followed by a dropout layer, and reasons over $z$ to produce the predicted object $\hat{\mathbf{t}}_o$. For ease of future notation, we denote let $g$ denote ConvE. An illustration of ConvE is shown in Figure\textcolor{red}{FIG}. For further details, we refer the reader to the work of \textbf{[CITE]}.
+
+% \paragraph{Criterion.} KGLP involves matching the predicted object to a {\em set} of correct objects given a subject and relation. We can formulate this criterion as, 
+% \begin{equation}
+%     \mathcal{L}(\mathbf{t}_o, \hat{\mathbf{t}}_o) = \text{Binary Cross Entropy}(\mathbf{t}_o, \hat{\mathbf{V}} \hat{\mathbf{t}}_o)
+% \end{equation}
+% where in a slight abuse of notation $\mathbf{t}_o$ denotes the embeddings of a set of correct object types, $\hat{\mathbf{V}}$ is a subset of $\mathbf{V}$ which only contains object type embedding representations, and $\text{Binary Cross Entropy}$ is the matching function between the predicted type and the correct set.
+
+% \subsection{JRRILP}
+%  In this section we present JRRILP, which explicitly ties RE and KGLP through a multi-task objective framework over RE and KGLP and inter-task weight sharing. Concretely, we define three criterion, each of which targets a singular task. The first objective is equivalent to that in equation \ref{eq:re_loss}, which specifies the RE objective:
+%  \begin{align}
+%     \mathcal{L}(\mathbf{r}, \hat{\mathbf{r}})_{1} &= \text{Softmax Cross Entropy}(\mathbf{r}, \mathbf{R}     \hat{\mathbf{r}}) \\
+%      &= \text{Softmax Cross Entropy}(\mathbf{r}, \mathbf{R} f(\mathbf{X}, \mathbf{X}_s,\mathbf{X}_o, \{\mathbf{X}_{cj} | j\in S_c\})) \\
+%      &= \text{Softmax Cross Entropy}(\mathbf{r}, \mathbf{R} f((\mathbf{V}X), (\mathbf{V}X_s),(\mathbf{V}X_o), \{(\mathbf{C_j}X) | j\in S_c\}))
+%  \end{align}
+%  where we successively decompose the criterion using the notation introduced in Section \ref{sec:re_notation}.
+% The remaining two objectives introduce the KGLP task. The second objective comprises of matching a given subject type $t_s$ from $X_s$ and the observed training set relation $r$ between $X_s$ and $X_o$ to $X_o$'s object type:
+% \begin{align}
+%     \mathcal{L}(\mathbf{t}_o, \hat{\mathbf{t}}_o)_{1} &= \text{Binary Cross Entropy}(\mathbf{t}_o, \hat{\mathbf{V}} \hat{\mathbf{t}}_o) \\
+%     &= \text{Binary Cross Entropy}(\mathbf{t}_o, \hat{\mathbf{V}} g(\mathbf{t}_s, \mathbf{r}) \\
+%     &= \text{Binary Cross Entropy}((\hat{\mathbf{V}}t_o), \hat{\mathbf{V}} g((\mathbf{V}t_s), (\mathbf{R}r))
+% \end{align}
+% where we follow a similar decomposition as the first objective. Our last criterion is extremely similar to the second, except that it substitutes the observed training relation $r$ for the predicted relation from our RE method,
+% \begin{align}
+%     \mathcal{L}(\mathbf{t}_o, \hat{\mathbf{t}}_o)_{2} &= \text{Binary Cross Entropy}(\mathbf{t}_o, \hat{\mathbf{V}} \hat{\mathbf{t}}_o) \\
+%     &= \text{Binary Cross Entropy}(\mathbf{t}_o, \hat{\mathbf{V}} g(\mathbf{t}_s, \hat{\mathbf{r}}) \\
+%     &= \text{Binary Cross Entropy}((\hat{\mathbf{V}}t_o), \hat{\mathbf{V}} g((\mathbf{V}t_s), f(\mathbf{X}, \mathbf{X}_s,\mathbf{X}_o, \{\mathbf{X}_{cj} | j\in S_c\}))
+% \end{align}
+% which follows equivalent decomposition as previous objectives. Importantly, there are three-key observations from this framework:
+% \begin{itemize}
+%     \item \textbf{Weight-Sharing}: Each objective shares the respective embedding matrices $\mathbf{R},\mathbf{V}$ and $\mathbf{C}_j$. This enables efficient information sharing between tasks, enabling RE to benefit from KGLP insights.
+%     \item \textbf{Inter-Connected}: The third objective {\em explicitly} ties RE and KGLP by composing a KGLP method with an RE approach. This aligns $f$ to link prediction and further illustrates the complementary nature of KGLP and RE.
+%     \item \textbf{General}: The proposed framework is fully general, enabling many existing RE models and KGLP approaches to be substituted for $f$ and $g$ respectively. 
+% \end{itemize}
+% To train JRRILP, we simultaneously learn over each task via the following objective,
+% \begin{equation}
+%     \mathcal{L}_{JRRILP} = \lambda_1 \mathcal{L}(\mathbf{r}, \hat{\mathbf{r}})_{1} + \lambda_2 \mathcal{L}(\mathbf{t}_o, \hat{\mathbf{t}}_o)_{1} + \lambda_3 \mathcal{L}(\mathbf{t}_o, \hat{\mathbf{t}}_o)_{2}
+% \end{equation}
+% where $\{\lambda_1, \lambda_2, \lambda_3\}\in [0,1]$ are hyperparameters that are specified based on validation performance. 
