@@ -199,6 +199,48 @@ category_maps = {
         'per:siblings',
         'per:spouse',
         'per:title'
+    },
+    'non_refined_labels': {
+        'per:cities_of_residence',
+        'per:stateorprovinces_of_residence',
+        'per:countries_of_residence',
+
+        'per:city_of_birth',
+        'per:stateorprovince_of_birth',
+        'per:country_of_birth',
+
+        'per:city_of_death',
+        'per:stateorprovince_of_death',
+        'per:country_of_death',
+
+        'per:spouse',
+        'per:parents',
+        'per:children',
+        'per:siblings',
+
+        'per:schools_attended',
+        'per:religion',
+        'per:employee_of',
+
+        'org:top_members/employees',
+        'org:founded_by',
+        'org:shareholders',
+
+        'per:date_of_death',
+        'per:date_of_birth',
+
+        'org:founded',
+        'org:dissolved',
+
+        'per:title',
+        'org:alternate_names',
+        'per:age',
+        'per:origin',
+        'per:cause_of_death',
+        'per:charges',
+        'org:political/religious_affiliation',
+        'org:website',
+        'org:number_of_employees/members',
     }
 }
 
