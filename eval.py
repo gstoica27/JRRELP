@@ -117,7 +117,10 @@ model = RelationModel(opt)
 model.load(model_file)
 
 # load data
-data_file = opt['data_dir'] +f'/test.json'
+if opt['eval_file'] is not None:
+    data_file = opt['eval_file']
+else:
+    data_file = opt['data_dir'] +f'/test.json'
 print("Loading data from {} with batch size {}...".format(data_file, opt['batch_size']))
 batch = DataLoader(data_file, opt['batch_size'], opt, vocab, evaluation=True)
 
