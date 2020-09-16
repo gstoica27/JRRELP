@@ -66,12 +66,15 @@ def create_one_hot(a):
 
 def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
     gold_ids = np.array([constant.LABEL_TO_ID[label] for label in gold_labels])
-    gold_one_hot = create_one_hot(gold_ids)
     all_probs = np.stack(probs, axis=0)
-    all_probs[gold_one_hot == 0] = -np.inf
-    # all_probs[gold_one_hot == 1] = np.inf
-    ranks = np.argsort(-all_probs, axis=-1)[:, 0].reshape(-1) + 1
-    print(Counter(ranks))
+    sorted_args = np.argsort(-all_probs, axis=-1)
+    ranks = []
+    assert len(sorted_args) == len(gold_labels)
+    for row_args, gold_label in zip(sorted_args, gold_ids):
+        rank = int(np.where(row_args == gold_label)[0]) + 1
+        ranks.append(rank)
+    # print(Counter(ranks))
+    ranks = np.array(ranks)
     hits = {hits_level: [] for hits_level in hits_to_compute}
     name2ranks = {}
     for hit_level in hits_to_compute:
