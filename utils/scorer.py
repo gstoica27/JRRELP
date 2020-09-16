@@ -344,15 +344,20 @@ def score(key, prediction, verbose=False):
                     category2records[category]['gold_by_relation'].append(gold)
         category_f1s = {}
         for category, records in category2records.items():
-            correct_by_relation_ = sum(records['correct_by_relation'])
-            guessed_by_relation_ = sum(records['guessed_by_relation'])
-            gold_by_relation_ = sum(records['gold_by_relation'])
+            correct_by_category = sum(records['correct_by_relation'])
+            guessed_by_category = sum(records['guessed_by_relation'])
+            gold_by_category = sum(records['gold_by_relation'])
+
+            tp = correct_by_category
+            fp = guessed_by_category - correct_by_category
+            fn = gold_by_category - correct_by_category
+
             precision = 1.0
-            if guessed_by_relation_ > 0:
-                precision = float(correct_by_relation_) / float(guessed_by_relation_)
+            if guessed_by_category > 0:
+                precision = float(correct_by_category) / float(guessed_by_category)
             recall = 0
-            if gold_by_relation_ > 0:
-                recall = float(correct_by_relation_) / float(gold_by_relation_)
+            if gold_by_category > 0:
+                recall = float(correct_by_category) / float(gold_by_category)
             f1 = 0
             if precision + recall > 0:
                 f1 = 2.0 * precision * recall / (precision + recall)
@@ -372,7 +377,10 @@ def score(key, prediction, verbose=False):
             if f1 < 0.1: sys.stdout.write(' ')
             if f1 < 1.0: sys.stdout.write(' ')
             sys.stdout.write("{:.2%}".format(f1))
-            sys.stdout.write("  #: %d" % gold_by_relation_)
+            sys.stdout.write("  #: %d" % gold_by_category)
+            sys.stdout.write("  TP: %d" % tp)
+            sys.stdout.write("  FP: %d" % fp)
+            sys.stdout.write("  FN: %d" % fn)
             sys.stdout.write("\n")
 
     # Print the aggregate score
