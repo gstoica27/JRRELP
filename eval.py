@@ -69,7 +69,7 @@ def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
     gold_one_hot = create_one_hot(gold_ids)
     all_probs = np.stack(probs, axis=0)
     all_probs[gold_one_hot == 0] = -np.inf
-    all_probs[gold_one_hot == 1] = np.inf
+    # all_probs[gold_one_hot == 1] = np.inf
     ranks = np.argsort(all_probs, axis=-1)[:, 0].reshape(-1) + 1
     print(Counter(ranks))
     hits = {hits_level: [] for hits_level in hits_to_compute}
@@ -190,7 +190,7 @@ print('saving to: {}'.format(data_save_dir))
 np.savetxt(os.path.join(data_save_dir, 'correct_ids.txt'), correct_ids, fmt='%s')
 np.savetxt(os.path.join(data_save_dir, 'wrong_ids.txt'), wrong_ids, fmt='%s')
 np.savetxt(os.path.join(data_save_dir, 'wrong_predictions.txt'), wrong_predictions, fmt='%s')
-
+np.savetxt(os.path.join(data_save_dir, 'probs.txt'), np.stack(all_probs, axis=0))
 id2preds = {d['id']: pred for d, pred in zip(raw_data, predictions)}
 json.dump(id2preds, open(os.path.join(data_save_dir, 'id2preds.json'), 'w'))
 
