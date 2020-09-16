@@ -1,5 +1,5 @@
 data_dir: '/home/scratch/gis/datasets/tacred/data/json'
-eval_file: #/zfsauton3/home/gis/converted_tacred_test.json
+eval_file: /zfsauton3/home/gis/research/relation_extraction/gcn-over-pruned-trees/dataset/full_tacred/tacred/data/json/test.json
 vocab_dir: '/home/scratch/gis/datasets/tacred/data/vocab'
 test_save_dir: '/home/scratch/gis/tacred_test_performances'
 save_dir: '/home/scratch/gis/saved_models'

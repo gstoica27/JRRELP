@@ -160,7 +160,10 @@ model = RelationModel(opt)
 model.load(model_file)
 
 # load data
-data_file = opt['data_dir'] +f'/test.json'
+if opt['eval_file'] is not None:
+    data_file = opt['eval_file']
+else:
+    data_file = opt['data_dir'] +f'/test.json'
 print("Loading data from {} with batch size {}...".format(data_file, opt['batch_size']))
 batch = DataLoader(data_file, opt['batch_size'], opt, vocab, evaluation=True)
 
@@ -175,6 +178,17 @@ for i, b in enumerate(batch):
     all_probs += probs
 predictions = [id2label[p] for p in predictions]
 metrics, other_data = scorer.score(batch.gold(), predictions, verbose=True)
+
+ids = [instance['id'] for instance in batch.raw_data]
+formatted_data = []
+for instance_id, pred, gold in zip(ids, predictions, batch.gold()):
+    formatted_data.append(
+        {
+            "id": instance_id.replace("'", '"'),
+            "label_true": gold.replace("'", '"'),
+            "label_pred": pred.replace("'", '"')
+        }
+    )
 
 compute_ranks(all_probs, gold_labels=batch.gold())
 
@@ -202,6 +216,12 @@ np.savetxt(os.path.join(data_save_dir, 'wrong_predictions.txt'), wrong_predictio
 np.savetxt(os.path.join(data_save_dir, 'probs.txt'), np.stack(all_probs, axis=0))
 id2preds = {d['id']: pred for d, pred in zip(raw_data, predictions)}
 json.dump(id2preds, open(os.path.join(data_save_dir, 'id2preds.json'), 'w'))
+
+with open(os.path.join(data_save_dir, 'palstm_tacred.jsonl'), 'w') as handle:
+    for instance in formatted_data:
+            line = "{}\n".format(instance)
+            handle.write(line)
+
 
 # save probability scores
 if len(args.out) > 0:
