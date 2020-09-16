@@ -57,6 +57,38 @@ def create_model_name(opt):
         aggregate_name = os.path.join(top_level_name, approach_type, main_name)
     return aggregate_name
 
+# Copied from: https://stackoverflow.com/questions/29831489/convert-array-of-indices-to-1-hot-encoded-numpy-array
+def create_one_hot(a):
+    b = np.zeros((a.size, a.max() + 1))
+    b[np.arange(a.size), a] = 1
+    return b
+
+def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
+    gold_ids = np.array([constant.LABEL_TO_ID[label] for label in gold_labels])
+    gold_one_hot = create_one_hot(gold_ids)
+    all_probs = np.concatenate(probs, axis=0)
+    all_probs[gold_one_hot == 0] = -np.inf
+    all_probs[gold_one_hot == 1] = np.inf
+    ranks = np.argsort(all_probs, axis=-1)
+    hits = {hits_level: [] for hits_level in hits_to_compute}
+    name2ranks = {}
+    for hit_level in hits_to_compute:
+        valid_preds = np.sum(ranks <= hit_level)
+        hits[hit_level] = valid_preds / len(ranks)
+
+    for hit_level in hits:
+        name = 'HITs@{}'.format(int(hit_level))
+        name2ranks[name] = hits[name]
+
+    mr = np.mean(ranks)
+    mrr = np.mean(1. / ranks)
+    name2ranks['MRR'] = mrr
+    name2ranks['MR'] = mr
+    print('RANKS:')
+    for name, metric in name2ranks.items():
+        print('{}: {}'.format(name, round(metric, 2)))
+    return name2ranks
+
 
 parser = argparse.ArgumentParser()
 # parser.add_argument('model_dir', type=str, help='Directory of the model.')
@@ -132,6 +164,9 @@ for i, b in enumerate(batch):
     all_probs += probs
 predictions = [id2label[p] for p in predictions]
 metrics, other_data = scorer.score(batch.gold(), predictions, verbose=True)
+
+compute_ranks(all_probs, gold_labels=batch.gold())
+
 p = metrics['precision']
 r = metrics['recall']
 f1 = metrics['f1']
