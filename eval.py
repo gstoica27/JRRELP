@@ -71,6 +71,8 @@ def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
     ranks = []
     assert len(sorted_args) == len(gold_labels)
     for row_args, gold_label in zip(sorted_args, gold_ids):
+        if id2label[gold_label] == 'no_relation':
+            continue
         rank = int(np.where(row_args == gold_label)[0]) + 1
         ranks.append(rank)
     # print(Counter(ranks))
