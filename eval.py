@@ -17,6 +17,7 @@ from utils.vocab import Vocab
 import yaml
 import numpy as np
 import json
+from collections import Counter
 
 def generate_param_list(params, cfg_dict, prefix=''):
     param_list = prefix
@@ -70,7 +71,7 @@ def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
     all_probs[gold_one_hot == 0] = -np.inf
     all_probs[gold_one_hot == 1] = np.inf
     ranks = np.argsort(all_probs, axis=-1)[:, 0].reshape(-1) + 1
-    print(ranks.shape)
+    print(Counter(ranks))
     hits = {hits_level: [] for hits_level in hits_to_compute}
     name2ranks = {}
     for hit_level in hits_to_compute:
