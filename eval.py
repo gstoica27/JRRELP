@@ -66,7 +66,7 @@ def create_one_hot(a):
 def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
     gold_ids = np.array([constant.LABEL_TO_ID[label] for label in gold_labels])
     gold_one_hot = create_one_hot(gold_ids)
-    all_probs = np.concatenate(probs, axis=0)
+    all_probs = np.stack(probs, axis=0)
     print(all_probs.shape)
     all_probs[gold_one_hot == 0] = -np.inf
     all_probs[gold_one_hot == 1] = np.inf
