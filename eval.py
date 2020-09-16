@@ -69,7 +69,8 @@ def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
     all_probs = np.stack(probs, axis=0)
     all_probs[gold_one_hot == 0] = -np.inf
     all_probs[gold_one_hot == 1] = np.inf
-    ranks = np.argsort(all_probs, axis=-1)
+    ranks = np.argsort(all_probs, axis=-1)[:, 0].reshape(-1)
+    print(ranks.shape)
     hits = {hits_level: [] for hits_level in hits_to_compute}
     name2ranks = {}
     for hit_level in hits_to_compute:
