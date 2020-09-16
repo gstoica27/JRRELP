@@ -132,6 +132,7 @@ with open(config_path, 'r') as file:
 
 opt = cfg_dict
 opt['id'] = create_model_name(opt)
+eval_file = opt['eval_file']
 #opt = vars(args)
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
@@ -160,8 +161,8 @@ model = RelationModel(opt)
 model.load(model_file)
 
 # load data
-if opt['eval_file'] is not None:
-    data_file = opt['eval_file']
+if eval_file is not None:
+    data_file = eval_file
 else:
     data_file = opt['data_dir'] +f'/test.json'
 print("Loading data from {} with batch size {}...".format(data_file, opt['batch_size']))
