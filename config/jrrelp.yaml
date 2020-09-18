@@ -1,12 +1,12 @@
-input_drop: 0.5
-hidden_drop: 0.75
-feat_drop: 0.75
+input_drop: 0.25
+hidden_drop: 0.5
+feat_drop: 0.5
 ent_emb_dim: 1024
 ent_emb_shape1: 32
 rel_emb_dim: 1024
 rel_emb_shape1: 32
 use_bias: True
 kernel_size: '(3, 3)'
-filter_channels: 32
+filter_channels: 64
 stride: 1
 padding: 0
