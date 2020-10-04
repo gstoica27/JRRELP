@@ -1,4 +1,4 @@
-input_drop: 0.25
+input_drop: 0.275
 hidden_drop: 0.5
 feat_drop: 0.495
 ent_emb_dim: 1024
