@@ -225,6 +225,34 @@ category_maps = {
         'org:number_of_employees/members',
         'org:dissolved',
     },
+    'per_identity': {
+        'per:identity',
+        'per:alternate_names',
+        'per:other_family'
+    },
+    'similar_labels': {
+        'org:members',
+        'org:subsidiaries'
+        'org:member_of',
+        'org:parents'
+    },
+    'mutual_exclusive': {
+        'per:countries_of_residence',
+        'per:cities_of_residence',
+        'per:stateorprovinces_of_residence'
+        'per:city_of_death',
+        'per:city_of_birth',
+        'per:stateorprovince_of_death',
+        'per:stateorprovince_of_birth',
+        'per:country_of_death',
+        'per:country_of_birth',
+    },
+    'challenging': {
+        'org:country_of_headquarters',
+        'org:city_of_headquarters',
+        'org:stateorprovince_of_headquarters',
+        'org:other_location_of_headquarters',
+    }
 
 }
 
