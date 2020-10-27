@@ -46,8 +46,9 @@ def create_model_name(cfg_dict):
         cfg_dict['seed'], cfg_dict['eval_metric'], cfg_dict['max_seq_length']
     )
     if cfg_dict.get('kglp', None) is not None and cfg_dict['with_jrrelp']:
-        kglp_task = '{}-{}-{}-{}'.format(
-            cfg_dict['jrrelp_lambda'],
+        kglp_task = '{}-{}-{}-{}-{}'.format(
+            cfg_dict['standard_lambda'],
+            cfg_dict['cyclic_lambda'],
             cfg_dict['without_observed'],
             cfg_dict['without_verification'],
             cfg_dict['exclude_no_relation']
@@ -576,7 +577,8 @@ def main(args):
                         standard_loss = standard_loss.mean()
                         cyclic_loss = cyclic_loss.mean()
                         # Aggregate loss with JRRELP weight
-                        loss += args.jrrelp_lambda * (standard_loss + cyclic_loss)
+                        # loss += args.jrrelp_lambda * (standard_loss + cyclic_loss)
+                        loss += args.standard_lambda * standard_loss + args.cyclic_lambda * cyclic_loss
 
                     if args.gradient_accumulation_steps > 1:
                         loss = loss / args.gradient_accumulation_steps
