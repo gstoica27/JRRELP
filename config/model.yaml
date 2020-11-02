@@ -9,6 +9,7 @@ do_train: True
 train_mode: random_sorted # choices: ['random', 'sorted', 'random_sorted']
 do_eval: True
 eval_test: True
+from_checkpoint: True
 
 do_lower_case: False
 feature_mode: ner

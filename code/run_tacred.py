@@ -474,8 +474,15 @@ def main(args):
         lrs = [args.learning_rate] if args.learning_rate else \
             [1e-6, 2e-6, 3e-6, 5e-6, 1e-5, 2e-5, 3e-5, 5e-5]
         for lr in lrs:
-            model = BertForSequenceClassification.from_pretrained(
-                args.model, cache_dir=str(PYTORCH_PRETRAINED_BERT_CACHE), num_labels=num_labels)
+            if os.path.exists(args.output_dir) and args.from_checkpoint:
+                model = BertForSequenceClassification.from_pretrained(args.output_dir, num_labels=num_labels)
+            else:
+                print('Here on Mistake!')
+                import pdb; pdb.set_trace()
+                exit()
+                model = BertForSequenceClassification.from_pretrained(
+                    args.model, cache_dir=str(PYTORCH_PRETRAINED_BERT_CACHE), num_labels=num_labels
+                )
             if args.fp16:
                 model.half()
             model.to(device)
