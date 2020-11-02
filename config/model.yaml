@@ -17,7 +17,7 @@ eval_batch_size: 32
 eval_metric: f1
 learning_rate: 0.00002
 num_train_epochs: 10
-warmup_proportion: .2
+warmup_proportion: .1
 no_cuda: False
 seed: 42
 gradient_accumulation_steps: 2
@@ -25,7 +25,7 @@ fp16: True
 loss_scale: 0
 
 with_jrrelp: True
-standard_lambda: .01
+standard_lambda: .25
 cyclic_lambda: .01
 without_observed: False
 without_verification: False
