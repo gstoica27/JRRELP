@@ -477,9 +477,6 @@ def main(args):
             if os.path.exists(args.output_dir) and args.from_checkpoint:
                 model = BertForSequenceClassification.from_pretrained(args.output_dir, num_labels=num_labels)
             else:
-                print('Here on Mistake!')
-                import pdb; pdb.set_trace()
-                exit()
                 model = BertForSequenceClassification.from_pretrained(
                     args.model, cache_dir=str(PYTORCH_PRETRAINED_BERT_CACHE), num_labels=num_labels
                 )
