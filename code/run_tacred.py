@@ -495,22 +495,6 @@ def main(args):
                             if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
             if args.with_jrrelp:
-                # TODO: This is hardcoded. move it to config file
-                # kglp_config = {
-                #     'input_drop': 0.5,
-                #     'hidden_drop': 0.75,
-                #     'feat_drop': 0.75,
-                #     'ent_emb_dim': 1024,
-                #     'ent_emb_shape1': 8,
-                #     'rel_emb_dim': 1024,
-                #     'rel_emb_shape1': 8,
-                #     'use_bias': True,
-                #     'kernel_size': '(3, 3)',
-                #     'filter_channels': 32,
-                #     'stride': 1,
-                #     'padding': 0,
-                #     'num_objects': len(object_indices.cpu().numpy().tolist()),
-                # }
                 kglp_config = args['kglp']
                 kglp_config['num_objects'] = len(object_indices.cpu().numpy().tolist())
                 kglp_model = ConvE(kglp_config)
@@ -581,8 +565,7 @@ def main(args):
                         standard_loss = standard_loss.mean()
                         cyclic_loss = cyclic_loss.mean()
                         # Aggregate loss with JRRELP weight
-                        # loss += args.jrrelp_lambda * (standard_loss + cyclic_loss)
-                        loss += args.standard_lambda * standard_loss + args.cyclic_lambda * cyclic_loss
+                        loss += args.jrrelp_lambda * (standard_loss + cyclic_loss)
 
                     if args.gradient_accumulation_steps > 1:
                         loss = loss / args.gradient_accumulation_steps
