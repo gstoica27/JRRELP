@@ -27,7 +27,6 @@ def add_kg_model_params(opt, cwd):
     link_prediction_model = opt['link_prediction']['model']
     params = link_prediction_config[link_prediction_model]
     params['name'] = link_prediction_model
-    params['freeze_network'] = opt['link_prediction']['freeze_network']
     return params
 
 def create_model_name(opt):
@@ -39,10 +38,9 @@ def create_model_name(opt):
     )
     if opt['link_prediction'] is not None:
         kglp_task_cfg = opt['link_prediction']
-        kglp_task = '{}-{}-{}-{}-{}-{}'.format(
+        kglp_task = '{}-{}-{}-{}-{}'.format(
             kglp_task_cfg['label_smoothing'],
             kglp_task_cfg['lambda'],
-            kglp_task_cfg['freeze_network'],
             kglp_task_cfg['without_observed'],
             kglp_task_cfg['without_verification'],
             kglp_task_cfg['without_no_relation']

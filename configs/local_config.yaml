@@ -1,6 +1,5 @@
 data_dir: '/Volumes/External HDD/dataset/tacred/data/json'
 vocab_dir: '/Volumes/External HDD/dataset/tacred/data/vocab'
-test_save_dir: '/Volumes/External HDD/dataset/tacred/test_perfs'
 save_dir: '/Volumes/External HDD/dataset/tacred/saved_models'
 emb_dim: 300  # Word embedding dimension.
 ner_dim: 30 # NER embedding dimension.
@@ -33,7 +32,6 @@ link_prediction:
   model: 'ConvE'
   label_smoothing: .1
   lambda: .5
-  freeze_network: False
   without_observed: False
   without_verification: False
   without_no_relation: True
