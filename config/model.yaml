@@ -26,8 +26,7 @@ fp16: True
 loss_scale: 0
 
 with_jrrelp: True
-standard_lambda: .25
-cyclic_lambda: .01
+jrrelp_lambda: .01
 without_observed: False
 without_verification: False
 exclude_no_relation: False
