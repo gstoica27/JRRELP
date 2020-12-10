@@ -1,3 +1,5 @@
+README COPIED FROM: https://github.com/yuhaozhang/tacred-relation. ALL CODE IN THIS DIRECTORY IS BASED OFF OF THE "tacred-relation" REPOSITORY, but has substantial changes. 
+
 Position-aware Attention RNN Model for Relation Extraction
 =========================
 
