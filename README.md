@@ -9,7 +9,7 @@ NeurIPS 2020 KR2ML Workshop
 This repository contains all code relevant to JRRELP, a general multitask learning framework for improving relation extraction via link prediction.
 
 For details on this work please check out our:
-* arXiv: [Paper](https://gstoica27.github.io/assets/pdf/Arxiv_JRRELP.pdf)
+* arXiv: [Paper](https://arxiv.org/abs/2012.04812)
 * NeurIPS 2020 KR2ML Workshop: [Paper](https://kr2ml.github.io/2020/papers/KR2ML_28_paper.pdf) & [Poster](https://kr2ml.github.io/2020/papers/KR2ML_28_poster.pdf)
 
 # Running Experiments
