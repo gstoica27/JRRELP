@@ -79,14 +79,7 @@ class RelationModel(object):
 
     def predict(self, batch, unsort=True):
         """ Run forward prediction. If unsort is True, recover the original order of the batch. """
-        # if self.opt['cuda']:
-        #     inputs = [b.cuda() for b in batch[:7]]
-        #     labels = batch[7].cuda()
-        # else:
-        #     inputs = [b for b in batch[:7]]
-        #     labels = batch[7]
         inputs, labels, orig_idx = maybe_place_batch_on_cuda(batch, self.opt['cuda'])
-        # orig_idx = batch[8]
 
         # forward
         self.model.eval()
@@ -257,7 +250,6 @@ class PositionAwareRNN(nn.Module):
             supplemental_losses = {'kglp':kglp_loss, 'verification': verification_loss}
             # Remove gradient from flowing to the relation embeddings in the main loss calculation
             logits = torch.mm(final_hidden, self.rel_emb.weight.transpose(1, 0).detach())
-            #logits += self.class_bias
         else:
             supplemental_losses = {}
             logits = self.linear(final_hidden)

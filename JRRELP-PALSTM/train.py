@@ -58,13 +58,10 @@ def create_model_name(opt):
     return aggregate_name
 
 cwd = os.getcwd()
-on_server = 'Desktop' not in cwd
-config_path = os.path.join(cwd, 'configs', f'{"server" if on_server else "local"}_config.yaml')
+config_path = os.path.join(cwd, 'configs', 'base_config.yaml')
 with open(config_path, 'r') as file:
     opt = yaml.load(file)
 
-
-#opt = vars(args)
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
 random.seed(1234)
@@ -74,7 +71,6 @@ elif opt['cuda']:
     torch.cuda.manual_seed(opt['seed'])
 
 # make opt
-# opt = vars(args)
 opt['num_class'] = len(constant.LABEL_TO_ID)
 
 # load vocab
@@ -153,7 +149,7 @@ for epoch in range(1, opt['num_epoch']+1):
 
     train_loss = train_loss / train_batch.num_examples * opt['batch_size'] # avg loss per batch
     dev_loss = dev_loss / dev_batch.num_examples * opt['batch_size']
-    print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch,\
+    print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch,
             train_loss, dev_loss, dev_f1))
     file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_f1))
 
