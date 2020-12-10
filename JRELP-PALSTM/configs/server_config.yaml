@@ -1,0 +1,37 @@
+data_dir: '/home/scratch/gis/datasets/tacred/data/json'
+eval_file: /zfsauton3/home/gis/research/relation_extraction/gcn-over-pruned-trees/dataset/full_tacred/tacred/data/json/test.json
+vocab_dir: '/home/scratch/gis/datasets/tacred/data/vocab'
+save_dir: '/home/scratch/gis/saved_models'
+emb_dim: 300  # Word embedding dimension.
+ner_dim: 30 # NER embedding dimension.
+pos_dim: 30 # POS embedding dimension.
+hidden_dim: 200 # RNN hidden state size.
+num_layers: 2 # Num of RNN layers.
+dropout: .5 # Input and RNN dropout rate.
+word_dropout: .04 # The rate at which randomly set a word to UNK.
+topn: 10000000000  # Only finetune top N embeddings.
+lower: False  # Lowercase all words.
+lr: 1.0 # Applies to SGD and Adagrad
+lr_decay: 0.9
+optim: 'sgd'  # sgd, adagrad, adam or adamax.
+num_epoch: 100 # number of epochs
+batch_size: 50
+max_grad_norm: 5.0  # Gradient Clipping.
+log_step: 20  # Print log every k steps.
+log:  'logs.txt'  # Write training log to file.
+save_epoch: 5 # Save model checkpoints every k epochs
+id: 'joint-re-lp'  # Model ID under which to save models.
+info: ''  # Optional info for the experiment.
+seed: 0  # random seed
+remove_entity_types: False # Replace subject and object granular typing with universal subject and object
+cuda: True
+cpu: False # Ignore CUDA.
+attn: True # Use attention layer.
+attn_dim: 200 # Attention size.
+pe_dim: 30  # Position encoding dimension.
+link_prediction:
+  model: 'ConvE'
+  lambda: 1.
+  without_observed: False
+  without_verification: False
+  without_no_relation: False

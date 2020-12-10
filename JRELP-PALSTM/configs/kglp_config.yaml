@@ -1,0 +1,18 @@
+
+ConvE:
+  input_drop: 0.2
+  hidden_drop: 0.3
+  feat_drop: 0.2
+  ent_emb_dim: 300
+  ent_emb_shape1: 30
+  rel_emb_dim: 200
+  rel_emb_shape1: 20
+  use_bias: False
+  kernel_size: (3, 3)
+  filter_channels: 32
+  stride: 1
+  padding: 0
+  load_path:
+DistMult:
+  embedding_dim: 300
+  input_drop: 0.04
