@@ -3,18 +3,13 @@ Train a model on TACRED.
 """
 
 import os
-import sys
 from datetime import datetime
 import time
 import numpy as np
 import random
-import argparse
 from shutil import copyfile
 import torch
 import pickle
-import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
 from collections import defaultdict
 
 from data.loader import DataLoader
@@ -33,10 +28,9 @@ def create_model_name(cfg_dict):
     )
     if cfg_dict['link_prediction'] is not None:
         kglp_task_cfg = cfg_dict['link_prediction']
-        kglp_task = '{}-{}-{}-{}-{}-{}-{}'.format(
+        kglp_task = '{}-{}-{}-{}-{}{}'.format(
             kglp_task_cfg['label_smoothing'],
             kglp_task_cfg['lambda'],
-            kglp_task_cfg['freeze_network'],
             kglp_task_cfg['with_relu'],
             kglp_task_cfg['without_observed'],
             kglp_task_cfg['without_verification'],
@@ -63,7 +57,6 @@ def add_kg_model_params(cfg_dict, cwd):
     link_prediction_model = cfg_dict['link_prediction']['model']
     params = link_prediction_config[link_prediction_model]
     params['name'] = link_prediction_model
-    params['freeze_network'] = cfg_dict['link_prediction']['freeze_network']
     return params
 
 cwd = os.getcwd()

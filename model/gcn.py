@@ -14,14 +14,10 @@ from model.link_prediction_models import *
 
 def initialize_link_prediction_model(params):
     name = params['name'].lower()
-    if name == 'distmult':
-        model = DistMult(params)
-    elif name == 'conve':
+    if name == 'conve':
         model = ConvE(params)
-    elif name == 'complex':
-        model = Complex(params)
     else:
-        raise ValueError('Only, {distmult, conve, and complex}  are supported')
+        raise ValueError('Only, {conve}  are supported')
     return model
 
 
