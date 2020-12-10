@@ -1,7 +1,7 @@
 Position-aware Attention RNN Model for Relation Extraction
 =========================
 
-All code in this repository is forked & based off of: https://github.com/yuhaozhang/tacred-relation.git. All credit for PALSTM to them.
+All code in this repository is forked & based off of: https://github.com/yuhaozhang/tacred-relation.git. All credit for PALSTM is theirs.
 
 This repo contains the *PyTorch* code for paper [Position-aware Attention and Supervised Data Improve Slot Filling](https://nlp.stanford.edu/pubs/zhang2017tacred.pdf).
 
