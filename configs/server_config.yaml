@@ -2,7 +2,6 @@ data_dir: '/home/scratch/gis/datasets/tacred/data/json'
 eval_file: /zfsauton3/home/gis/research/relation_extraction/gcn-over-pruned-trees/dataset/full_tacred/tacred/data/json/test.json
 vocab_dir: '/home/scratch/gis/datasets/tacred/data/vocab'
 save_dir: '/home/scratch/gis/saved_models'
-id_load_file:
 emb_dim: 300  # Word embedding dimension.
 ner_dim: 30 # NER embedding dimension.
 pos_dim: 30 # POS embedding dimension.
@@ -32,8 +31,7 @@ attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.
 link_prediction:
   model: 'ConvE'
-  label_smoothing: .1
   lambda: 1.
   without_observed: False
-  without_verification: True
+  without_verification: False
   without_no_relation: False

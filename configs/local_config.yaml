@@ -30,7 +30,6 @@ attn_dim: 200 # Attention size.
 pe_dim: 30  # Position encoding dimension.
 link_prediction:
   model: 'ConvE'
-  label_smoothing: .1
   lambda: .5
   without_observed: False
   without_verification: False

@@ -29,25 +29,18 @@ class DataLoader(object):
 
         with open(filename) as infile:
             data = json.load(infile)
-        if opt['id_load_file'] is not None:
-            ids = np.loadtxt(opt['id_load_file'], dtype=np.str)
-            data = [d for d in data if d['id'] in ids]
         self.raw_data = data
         data = self.preprocess(data, vocab, opt)
 
         # shuffle for training
         self.eval = evaluation
         if not evaluation:
-            # indices = list(range(len(data)))
-            # random.shuffle(indices)
-            # data = [data[i] for i in indices]
             data = self.shuffle_data(data)
         self.id2label = dict([(v,k) for k,v in self.label2id.items()])
         self.labels = [self.id2label[d[-1]] for d in data['base']]
         self.num_examples = len(data['base'])
 
         # chunk into batches
-        # data = [data[i:i+batch_size] for i in range(0, len(data), batch_size)]
         data = self.create_batches(data, batch_size)
         self.data = data
         print("{} batches created for {}".format(len(data), filename))

@@ -37,8 +37,7 @@ def create_model_name(opt):
     )
     if opt.get('link_prediction', None) is not None:
         kglp_task_cfg = opt.get('link_prediction', None)
-        kglp_task = '{}-{}-{}-{}-{}'.format(
-            kglp_task_cfg['label_smoothing'],
+        kglp_task = '{}-{}-{}-{}'.format(
             kglp_task_cfg['lambda'],
             kglp_task_cfg['without_observed'],
             kglp_task_cfg['without_verification'],
@@ -57,90 +56,7 @@ def create_model_name(opt):
         aggregate_name = os.path.join(top_level_name, approach_type, main_name)
     return aggregate_name
 
-# Copied from: https://stackoverflow.com/questions/29831489/convert-array-of-indices-to-1-hot-encoded-numpy-array
-def create_one_hot(a):
-    b = np.zeros((a.size, a.max() + 1))
-    b[np.arange(a.size), a] = 1
-    return b
-
-def compute_ranks(probs, gold_labels, hits_to_compute=(1, 3, 5, 10, 20, 50)):
-    gold_ids = np.array([constant.LABEL_TO_ID[label] for label in gold_labels])
-    all_probs = np.stack(probs, axis=0)
-    sorted_args = np.argsort(-all_probs, axis=-1)
-    ranks = []
-    assert len(sorted_args) == len(gold_labels)
-    for row_args, gold_label in zip(sorted_args, gold_ids):
-        if id2label[gold_label] == 'no_relation':
-            continue
-        rank = int(np.where(row_args == gold_label)[0]) + 1
-        ranks.append(rank)
-    # print(Counter(ranks))
-    ranks = np.array(ranks)
-    hits = {hits_level: [] for hits_level in hits_to_compute}
-    name2ranks = {}
-    for hit_level in hits_to_compute:
-        valid_preds = np.sum(ranks <= hit_level)
-        hits[hit_level] = valid_preds / len(ranks)
-
-    for hit_level in hits:
-        name = 'HITs@{}'.format(int(hit_level))
-        name2ranks[name] = hits[hit_level]
-
-    mr = np.mean(ranks)
-    mrr = np.mean(1. / ranks)
-    name2ranks['MRR'] = mrr
-    name2ranks['MR'] = mr
-    print('RANKS:')
-    for name, metric in name2ranks.items():
-        if 'HIT' in name or 'MRR' in name:
-            value = round(metric * 100, 2)
-        else:
-            value = round(metric, 2)
-        print('{}: {}'.format(name, value))
-    return name2ranks
-
-def compute_structure_parts(data):
-    argdists = []
-    sentlens = []
-    for instance in data:
-        ss, se = instance['subj_start'], instance['subj_end']
-        os, oe = instance['obj_start'], instance['obj_end']
-        sentlens.append(len(instance['token']))
-        if ss > oe:
-            argdist = ss - oe
-        else:
-            argdist = os - se
-        argdists.append(argdist)
-    return {'argdists': argdists, 'sentlens': sentlens}
-
-def compute_structure_errors(parts, preds, gold_labels):
-    structure_errors = {'argdist=1': [], 'argdist>10': [], 'sentlen>30': []}
-    argdists = parts['argdists']
-    sentlens = parts['sentlens']
-    for i in range(len(argdists)):
-        argdist = argdists[i]
-        sentlen = sentlens[i]
-        pred = preds[i]
-        gold = gold_labels[i]
-        is_correct = pred == gold
-
-        if argdist <= 1:
-            structure_errors['argdist=1'].append(is_correct)
-        if argdist > 10:
-            structure_errors['argdist>10'].append(is_correct)
-        if sentlen > 30:
-            structure_errors['sentlen>30'].append(is_correct)
-    print('Structure Errors:')
-    for structure_name, error_list in structure_errors.items():
-        accuracy = round(np.mean(error_list) * 100., 4)
-        print('{} | Accuracy: {} | Correct: {} | Wrong: {} | Total: {} '.format(
-            structure_name, accuracy, sum(error_list), len(error_list) - sum(error_list), len(error_list)
-        ))
-    return structure_errors
-
-
 parser = argparse.ArgumentParser()
-# parser.add_argument('model_dir', type=str, help='Directory of the model.')
 parser.add_argument('--model', type=str, default='best_model.pt', help='Name of the model file.')
 parser.add_argument('--data_dir', type=str, default='dataset/tacred')
 parser.add_argument('--dataset', type=str, default='test', help="Evaluate on dev or test.")
@@ -170,7 +86,6 @@ with open(config_path, 'r') as file:
 opt = cfg_dict
 opt['id'] = create_model_name(opt)
 eval_file = opt['eval_file']
-#opt = vars(args)
 torch.manual_seed(opt['seed'])
 np.random.seed(opt['seed'])
 random.seed(1234)
@@ -180,13 +95,11 @@ elif opt['cuda']:
     torch.cuda.manual_seed(opt['seed'])
 
 # load opt
-# model_load_dir = opt['save_dir'] + '/' + opt['id']
 model_load_dir = '/zfsauton3/home/gis/research/original_palstm/tacred-relation/saved_models/00'
 print(model_load_dir)
 model_file = os.path.join(model_load_dir, 'best_model.pt')
 print("Loading model from {}".format(model_file))
 opt = torch_utils.load_config(model_file)
-opt['id_load_file'] = None
 # load vocab
 vocab_file = opt['vocab_dir'] + '/vocab.pkl'
 vocab = Vocab(vocab_file, load=True)
@@ -217,22 +130,6 @@ for i, b in enumerate(batch):
 predictions = [id2label[p] for p in predictions]
 metrics, other_data = scorer.score(batch.gold(), predictions, verbose=True)
 
-ids = [instance['id'] for instance in batch.raw_data]
-formatted_data = []
-for instance_id, pred, gold in zip(ids, predictions, batch.gold()):
-    formatted_data.append(
-        {
-            "id": instance_id.replace("'", '"'),
-            "label_true": gold.replace("'", '"'),
-            "label_pred": pred.replace("'", '"')
-        }
-    )
-
-compute_ranks(all_probs, gold_labels=batch.gold())
-
-structure_parts = compute_structure_parts(batch.raw_data)
-compute_structure_errors(structure_parts, preds=predictions, gold_labels=batch.gold())
-
 p = metrics['precision']
 r = metrics['recall']
 f1 = metrics['f1']
@@ -257,12 +154,6 @@ np.savetxt(os.path.join(data_save_dir, 'wrong_predictions.txt'), wrong_predictio
 np.savetxt(os.path.join(data_save_dir, 'probs.txt'), np.stack(all_probs, axis=0))
 id2preds = {d['id']: pred for d, pred in zip(raw_data, predictions)}
 json.dump(id2preds, open(os.path.join(data_save_dir, 'id2preds.json'), 'w'))
-
-with open(os.path.join(data_save_dir, 'palstm_tacred.jsonl'), 'w') as handle:
-    for instance in formatted_data:
-            line = "{}\n".format(instance)
-            handle.write(line)
-
 
 # save probability scores
 if len(args.out) > 0:
