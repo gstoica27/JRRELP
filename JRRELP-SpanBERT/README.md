@@ -1,3 +1,7 @@
+ALL CODE IN THIS DIRECTORY IS BASED OFF OF: https://github.com/facebookresearch/SpanBERT.
+
+However, we have made substantial changes
+
 # SpanBERT
 This repository contains code and models for the paper: [SpanBERT: Improving Pre-training by Representing and Predicting Spans](https://arxiv.org/abs/1907.10529).
 
