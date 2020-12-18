@@ -69,10 +69,10 @@ args = parser.parse_args()
 
 cwd = os.getcwd()
 on_server = 'Desktop' not in cwd
-config_path = os.path.join(cwd, 'configs', f'{"server" if on_server else "local"}_config.yaml')
+config_path = os.path.join(cwd, 'configs', 'base_config.yaml')
 
 def add_kg_model_params(cfg_dict, cwd):
-    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
+    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'kglp_configs.yaml')
     with open(link_prediction_cfg_file, 'r') as handle:
         link_prediction_config = yaml.load(handle)
     link_prediction_model = cfg_dict.get('link_prediction', None)['model']

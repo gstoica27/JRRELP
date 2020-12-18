@@ -51,7 +51,7 @@ def create_model_name(cfg_dict):
 
 
 def add_kg_model_params(cfg_dict, cwd):
-    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'link_prediction_configs.yaml')
+    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'kglp_configs.yaml')
     with open(link_prediction_cfg_file, 'r') as handle:
         link_prediction_config = yaml.load(handle)
     link_prediction_model = cfg_dict['link_prediction']['model']

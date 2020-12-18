@@ -21,7 +21,7 @@ from utils import scorer, constant, helper
 from utils.vocab import Vocab
 
 def add_kg_model_params(opt, cwd):
-    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'kglp_config.yaml')
+    link_prediction_cfg_file = os.path.join(cwd, 'configs', 'kglp_configs.yaml')
     with open(link_prediction_cfg_file, 'r') as handle:
         link_prediction_config = yaml.load(handle)
     link_prediction_model = opt['link_prediction']['model']

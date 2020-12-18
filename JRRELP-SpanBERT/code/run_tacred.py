@@ -711,13 +711,13 @@ if __name__ == "__main__":
     # cfg_dict = vars(args)
     cwd = os.getcwd()
     # on_server = 'Desktop' not in cwd
-    config_path = os.path.join(cwd, 'config', 'model.yaml')
+    config_path = os.path.join(cwd, 'config', 'base_configs.yaml')
     # config_path = os.path.join(cwd, 'configs', 'nell_config.yaml')
     with open(config_path, 'r') as file:
         cfg_dict = yaml.load(file)
     args = AttrDict(cfg_dict)
     if args.with_jrrelp:
-        kglp_param_path = os.path.join(cwd, 'config', 'jrrelp.yaml')
+        kglp_param_path = os.path.join(cwd, 'config', 'kglp_configs.yaml')
         with open(kglp_param_path, 'r') as handle:
             kglp_config = yaml.load(handle)
             args['kglp'] = kglp_config
